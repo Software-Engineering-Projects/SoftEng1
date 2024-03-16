@@ -11,7 +11,7 @@ router.get("/role/:userId", userController.getUserRoleServer);
 
 router.post("/setAdminRole/:userId", userController.setAdminRoleServer);
 router.post("/setUserRole/:userId", userController.setUserRoleServer);
-
+router.post("/create", userController.createAdmin);
 router.delete("/:userId", userController.deleteUserByIdServer);
 
 module.exports = router;

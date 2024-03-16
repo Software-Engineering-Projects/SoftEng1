@@ -99,7 +99,7 @@ const schema = {
     "cartId": "string",
     "totalPrice": "number",
 }
-```
+``` 
 
 ## Order Example (Valid Inputs)
 

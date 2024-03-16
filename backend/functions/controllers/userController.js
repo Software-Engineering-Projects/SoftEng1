@@ -1,4 +1,10 @@
+const { app } = require("../index.js");
 const admin = require("firebase-admin");
+
+const resendApiKey = "re_DuGQ3ZnZ_PSy8JYLy5HHvahemRU9BQEur"
+const resend = new Resend(resendApiKey);
+const yourEmailAddress = "cuy4207@gmailcom";
+
 
 // NOTE: To get a sample response from these API endpoints refer to the readme in the route directory
 
@@ -255,8 +261,77 @@ const getUserByEmailServer = async (req, res, next) => {
   }
 };
 
+const createAdmin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Create the user
+    const userRecord = await admin.auth().createUser({
+      email,
+      password
+    });
+
+    /* Set custom claims for the user
+    const { uid } = userRecord;
+    await admin.auth().setCustomUserClaims(uid, { admin: true });
+*/
+
+
+      return sendEmailVerification(userRecord.email);
+   } catch (error) {
+      console.error("Error sending email verification:", error.message);
+      return res.status(400).json({ success: false, msg: `Error creating admin account: ${error.message}` });
+
+    }
+  };
+
+
+
+
+async function sendEmail(email, verificationLink, emailName = yourEmailAddress) {
+  try {
+    const { data, error } = await resend.emails.send({
+      // NOTE: This is the default email address that will be used to send the email, without the need to create your own custom domain.
+      from: "noreply@ordering.com <onboarding@resend.dev>",
+      to: [email],
+      subject: `Verify your email address`,
+      html: `
+        <h1>Welcome to Ordering System!</h1>
+        <p>Thank you for joining us, <strong> ${emailName}</strong>, <br>
+        To get started, please verify your email address by clicking the button below:</p>
+        <a href="${verificationLink}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">Verify Email</a>
+        <p>If you have any questions or need assistance, feel free to contact our support team.</p>
+        <p>Best regards,</p>
+        <p>Ordering System Team</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Error sending email:", error);
+      throw new Error("Email sending failed");
+    }
+
+    console.log("Email sent successfully:", data);
+  } catch (error) {
+    console.error("Error sending email:", error.message);
+    throw error;
+  }
+}
+
+async function sendEmailVerification(email) {
+  try {
+    const verificationLink = await admin.auth().generateEmailVerificationLink(email);
+    await sendEmail(email, verificationLink);
+    console.log("Email verification link sent to:", email);
+  } catch (error) {
+    console.error("Error sending email verification:", error.message);
+    throw error;
+  }
+}
+
+
 // TODO: Create user endpoint, this should be handled by firebase authentication. Upon creation of an account this should create a user collection in firestore based on the uuid of the firebase authentication from the current user
 
 module.exports = {
-  userTestProductServer, getUserCountServer, getUserListServer, getUserByIdServer, deleteUserByIdServer, setAdminRoleServer, getUserRoleServer, setUserRoleServer, getUserByEmailServer,
+  userTestProductServer, getUserCountServer, getUserListServer, getUserByIdServer, deleteUserByIdServer, setAdminRoleServer, getUserRoleServer, setUserRoleServer, getUserByEmailServer,createAdmin
 };
