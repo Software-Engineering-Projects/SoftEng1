@@ -9,4 +9,6 @@ router.post("/create", orderController.createOrderServer);
 
 router.patch("/update/:orderId", orderController.updateOrderStatusServer);
 
+router.get("/view/:orderId", orderController.viewCustomerOrders)
+
 module.exports = router;

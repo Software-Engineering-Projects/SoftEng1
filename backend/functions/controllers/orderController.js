@@ -70,6 +70,21 @@ const updateOrderStatusServer = async (req, res, next) => {
   }
 };
 
+const viewCustomerOrders = async (req, res, next) => {
+  const orderId = req.params.orderId;
+
+  try {
+    const order = await db.collection("orders").doc(orderId).get();
+
+    if (!order.exists) {
+      return res.status(404).send({ success: false, msg: "Order not found" });
+    }
+
+    return res.status(200).send({ success: true, data: order.data() });
+  } catch (error) {
+    return res.status(400).send({ success: false, msg: `VIEW ORDERS ERROR [SERVER] ${error.message}` });
+  }
+};
 
 // TODO:
 const getOrderByIdServer = async (req, res, next) => {
@@ -97,5 +112,10 @@ const getOrderByIdServer = async (req, res, next) => {
  */
 
 module.exports = {
-  orderTestRouteServer, getAllOrdersServer, createOrderServer, updateOrderStatusServer, getOrderByIdServer,
+  orderTestRouteServer,
+  getAllOrdersServer,
+  createOrderServer,
+  updateOrderStatusServer,
+  viewCustomerOrders,
+  getOrderByIdServer,
 };
