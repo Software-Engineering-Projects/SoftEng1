@@ -24,6 +24,4 @@ const orderSchema = Joi.object({
   totalPrice: Joi.number().required(),
 });
 
-module.exports = {
-  orderSchema,
-};
+module.exports = orderSchema;

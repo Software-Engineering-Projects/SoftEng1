@@ -5,15 +5,8 @@ const express = require("express");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const cors = require("cors");
-
 require("dotenv").config();
 const serviceAccountKey = require("./serviceAccountKey.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccountKey),
-  // NOTE: Replace this with your own databaseURL
-  databaseURL: "https://ordering-system-d1976-default-rtdb.firebaseio.com/",
-});
 
 let app = null;
 
@@ -24,6 +17,12 @@ if (!app) {
   app.use((_req, res, next) => {
     res.set("Access-Control-Allow-Origin", "*");
     next();
+  });
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccountKey),
+    // NOTE: Replace this with your own databaseURL
+    databaseURL: "https://ordering-system-d1976-default-rtdb.firebaseio.com/",
   });
 
   /**
@@ -48,13 +47,6 @@ if (!app) {
   const checkoutRoute = require("./routes/api/checkout");
   app.use("/api/checkout", checkoutRoute);
 
-  /**
-   * This routes is only for testing purposes
-   * Create a GET Request to the given BASEURL from firebase
-   * Make sure to run the backend server first using the command
-   * npm run serve
-   * NOTE: make sure to be in the backend/functions directory
-   */
   app.get("/", (_req, res) => {
     res.send("Hello World");
   });

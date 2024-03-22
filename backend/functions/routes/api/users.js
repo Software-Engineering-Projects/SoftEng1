@@ -14,4 +14,8 @@ router.post("/setUserRole/:userId", userController.setUserRoleServer);
 
 router.delete("/:userId", userController.deleteUserByIdServer);
 
+router.post("/auth/loginUser", userController.loginUserServer);
+router.post("/auth/registerUser", userController.registerUserServer);
+router.post("/auth/signOut", userController.logOutUserServer);
+
 module.exports = router;

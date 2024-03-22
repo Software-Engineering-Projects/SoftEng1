@@ -228,6 +228,32 @@ None
 }
 ```
 
+### User Login
+
+```http
+   POST `{{baseUrl}}/api/users/login`
+```
+### Description
+
+This endpoint is used to authenticate a user. It expects a POST request with the user's credentials (typically their username/email and password) in the request body. If the credentials are valid, it will return a token that the user can use for authenticated requests to other endpoints.
+
+### Request Body
+```JSON
+{
+  "username": "example@gmail.com",
+  "password": "password123"
+}
+```
+
+### Sample Response 200 (Successful)
+
+```JSON
+{
+    "success": true,
+    "idToken": "strings"
+}
+```
+
 ### Assign Admin Role
 
 ```http
@@ -353,7 +379,7 @@ This endpoint is a **POST** request and is responsible for creating a new produc
 | nutritionalInfo | object  | An object that contains the nutritional information of the product |
 | preparationTime | number  | The time in minutes it takes to prepare the product                |
 
-#### Custom Headers
+#### Headers
 
 None
 
@@ -430,7 +456,7 @@ None
 }
 ```
 
-Get all products
+### Get all products
 
 ```http
   GET `${BASE_URL}/api/products/all`
@@ -719,5 +745,128 @@ None
             "_nanoseconds": 513005000
         }
     }
+}
+```
+### Admin create product
+
+```http
+  POST `${BASE_URL}/api/products/create`
+```
+
+### Description
+
+This endpoint is a **POST** request and is responsible for creating a new product in the database. It requires the `name`, `price`, and `category` of the product as a request body. It also requires the `IdToken` of the admin user as a request headers.
+
+### Request Header
+
+| Key           | Value                                                             |
+| ------------- | ------------------------------------------------------------------|
+| Authorization | Put the token here                                                |
+
+### Request Body
+
+Refer to the Request Body of Create Single Product in the line 365
+
+### Response Body
+
+Refer to the Request Body of Create Single Product in the line 388
+
+### Status Code
+
+| Code | Description                                                             |
+| ---- | ----------------------------------------------------------------------- |
+| 201  | Created. The product was created successfully                           |
+| 400  | Bad Request. The request body was invalid or missing                    |
+| 500  | Internal Server Error. Something went wrong on the server side          |
+| 401  | Authorization required. The token is either missing, invalid or expired |
+
+### Sample Response 401
+```JSON
+{
+    "success": false,
+    "msg": "You are not authorized"
+}
+```
+### Admin Update Product by ID
+
+```http
+  PATCH `${BASE_URL}/api/products/:productId`
+```
+
+### Description
+
+This endpoint is a **PATCH** request and is responsible for updating the product details by its ID. It requires the `productId` as a path parameter and field being changed. It also requires the `IdToken` of the admin user as a request headers. Some fields are optional whilst others are not, you can check the product schema
+
+### Request Header
+
+| Key           | Value                                                             |
+| ------------- | ------------------------------------------------------------------|
+| Authorization | Put the token here                                                |
+
+#### Path Parameters
+
+Refer to the Path Parameters of the Update product by ID in line 650
+
+#### Response Body
+
+Refer to the Response Body of the the Update product by ID in line 662
+
+#### Status Codes
+
+| Code | Description                                                             |
+| ---- | ----------------------------------------------------------------------- |
+| 200  | OK. The product details were updated successfully                       |
+| 400  | Bad Request. The product ID or the request body was invalid             |
+| 404  | Not Found. The product with the given ID was not found                  |
+| 500  | Internal Server Error. Something went wrong on the server side          |
+| 401  | Authorization required. The token is either missing, invalid or expired |
+
+### Sample Response 401
+```JSON
+{
+    "success": false,
+    "msg": "You are not authorized"
+}
+```
+
+### Admin Delete product by ID
+
+```http
+DELETE `${BASE_URL}/api/products/:productId`
+```
+
+### Description
+
+This endpoint is a **DELETE** request and is responsible for deleting the product from the database by its ID. It requires the `productId` as a path parameter. It also requires the `IdToken` of the admin user as a request headers.
+
+### Request Header
+
+| Key           | Value                                                             |
+| ------------- | ------------------------------------------------------------------|
+| Authorization | Put the token here                                                |
+
+#### Path Parameters
+
+Refer to the Path Parameters of the Delete product by ID in line 707
+
+#### Response Body
+
+Refer to the Response Body of the the Update product by ID in line 719
+
+#### Status Codes
+
+| Code | Description                                                             |
+| ---- | ----------------------------------------------------------------------- |
+| 200  | OK. The product was deleted successfully                                |
+| 400  | Bad Request. The product ID was invalid                                 |
+| 404  | Not Found. The product with the given ID was not found                  |
+| 500  | Internal Server Error. Something went wrong on the server side          |
+| 401  | Authorization required. The token is either missing, invalid or expired |
+
+### Sample Response 401
+```JSON
+{
+    "success": false,
+    "msg": "You are not authorized"
 }
 ```
