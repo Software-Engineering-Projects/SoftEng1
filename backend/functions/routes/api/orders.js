@@ -4,11 +4,10 @@ const orderController = require("../../controllers/orderController");
 router.get("/", orderController.orderTestRouteServer);
 router.get("/all", orderController.getAllOrdersServer);
 router.get("/:orderId", orderController.getOrderByIdServer);
+router.get("/view/:orderId", orderController.viewCustomerOrders);
 
 router.post("/create", orderController.createOrderServer);
 
 router.patch("/update/:orderId", orderController.updateOrderStatusServer);
-
-router.get("/view/:orderId", orderController.viewCustomerOrders);
 
 module.exports = router;
