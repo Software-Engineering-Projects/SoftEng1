@@ -70,23 +70,25 @@ const updateOrderStatusServer = async (req, res, next) => {
     return res.status(400).send({ success: false, msg: `UPDATE ORDER STATUS ERROR [SERVER] ${error.message}` });
   }
 };
+// NOTE: Now fetches all the orders of a given user not just a single order as that is already given by the getOrderById
 const viewCustomerOrders = async (req, res, next) => {
-  const orderId = req.params.orderId;
+  const userId = req.params.userId;
 
   try {
-    const order = await db.collection("orders").doc(orderId).get();
+    const orders = await db.collection("orders").where("userId", "==", userId).get();
 
-    if (!order.exists) {
-      return res.status(404).send({ success: false, msg: "Order not found" });
+    if (orders.empty) {
+      return res.status(404).send({ success: false, msg: "No orders found for this user" });
     }
 
-    return res.status(200).send({ success: true, data: order.data() });
+    const ordersData = orders.docs.map(doc => doc.data());
+
+    return res.status(200).send({ success: true, data: ordersData });
   } catch (error) {
     return res.status(400).send({ success: false, msg: `VIEW ORDERS ERROR [SERVER] ${error.message}` });
   }
 };
 
-// TODO:
 const getOrderByIdServer = async (req, res, next) => {
   const orderId = req.params.orderId;
 
@@ -102,14 +104,6 @@ const getOrderByIdServer = async (req, res, next) => {
     return res.status(200).send({ success: true, msg: `GET ORDER BY ID ERROR [SERVER] ${error.message}` });
   }
 };
-
-/**
- * This will be where the order api endpoints will go
- * Update orders(status, details, etc)
- *  Get orders
- * Get all orders
- * Get order by id, users, etc
- */
 
 module.exports = {
   orderTestRouteServer,
