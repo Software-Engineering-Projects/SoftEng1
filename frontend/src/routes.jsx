@@ -22,7 +22,6 @@ import {
   Checkout
 } from "./containers/components/user-profile/index.js";
 
-
 // Dashboard Pages
 import {
   DashboardOrders,
@@ -37,7 +36,6 @@ import {
 } from "./containers/components/dashboard/pages/index.js";
 
 
-
 // Main Pages
 import { MainDashboard } from "./containers/components/dashboard/index.js";
 import { TopNavbar } from "./containers/components/main/index.js";
@@ -48,8 +46,7 @@ import { MenuItemProductPage } from "./containers/components/main/navbar/pages/M
 function MainPageRoutes() {
   return (
     <Routes>
-      {/* TODO: 404 Page doesn't work properly */}
-      {/* <Route path="/" element={<HomePage />} /> */}
+      <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<Login />} />
       {/* <Route path="*" element={<NotFoundPage />} /> */}
     </Routes>
@@ -60,9 +57,9 @@ function UserProfileRoutes() {
   return (
     <Routes>
       <Route path="/profile" element={<Profile />} />
-      <Route path="/orders" element={<Orders />} />
-      <Route path="/order-history" element={<OrderHistory />} />
-      <Route path="/transactions" element={<Transactions />} />
+      <Route path="/profile/orders" element={<Orders />} />
+      <Route path="/profile/order-history" element={<OrderHistory />} />
+      <Route path="/profile/transactions" element={<Transactions />} />
     </Routes>
   );
 }
@@ -70,19 +67,11 @@ function UserProfileRoutes() {
 function MainPageTopNavbarRoutes() {
   return (
     <Routes>
-      <Route
-        element={
-          <>
-            <TopNavbar />
-            <Outlet />
-          </>
-        }
-      >
-        <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<><TopNavbar /><Outlet /></>}>
+        <Route index element={<HomePage />} />
         <Route path="menu" element={<MenuPage />} />
         <Route path="menu/:id" element={<MenuItemProductPage />} />
         <Route path="checkout" element={<Checkout />} />
-
         <Route path="featured" element={<AboutPage />} />
         <Route path="contacts" element={<ContactsPage />} />
       </Route>
@@ -90,50 +79,30 @@ function MainPageTopNavbarRoutes() {
   );
 }
 
-
-
-// TODO: Add the outlet child routes for the dashboard routes
 function AdminDashboardRoutes() {
   return (
     <Routes>
-      <Route path="/dashboard/*" element={<MainDashboard />}>
+      <Route path="/dashboard" element={<><MainDashboard /></>}>
+        {/* <Route index element={<MainDashboard />} /> */}
         <Route path="orders" element={<DashboardOrders />} />
         <Route path="users" element={<DashboardUsers />} />
         <Route path="products" element={<DashboardProducts />} />
         <Route path="restaurants" element={<DashboardRestaurants />} />
         <Route path="reports" element={<DashboardReports />} />
         <Route path="settings" element={<DashboardSettings />} />
+        <Route path="products/add" element={<DashboardAddProducts />} />
+        <Route path="restaurants/add" element={<DashboardAddRestaurants />} />
+        <Route path="users/add" element={<DashboardAddUsers />} />
       </Route>
     </Routes>
   );
 }
-
-// TODO: Add the outlet child routes for the dashboard routes
-// TODO: Fix the routing compoennt rendering
-function AdminDashboardAddRoutes() {
-  return (
-    <Routes>
-      <Route
-        path="/dashboard/products/add"
-        element={<DashboardAddProducts />}
-      />
-      <Route
-        path="/dashboard/restaurants/add"
-        element={<DashboardAddRestaurants />}
-      />
-      <Route path="/dashboard/users/add" element={<DashboardAddUsers />} />
-    </Routes>
-  );
-}
-
-// Export your route components
 
 export {
   MainPageRoutes,
   UserProfileRoutes,
   MainPageTopNavbarRoutes,
   AdminDashboardRoutes,
-  AdminDashboardAddRoutes,
 };
 
 export default function AllRoutes() {
@@ -143,7 +112,7 @@ export default function AllRoutes() {
       <UserProfileRoutes />
       <MainPageTopNavbarRoutes />
       <AdminDashboardRoutes />
-      <AdminDashboardAddRoutes />
     </>
   );
 }
+

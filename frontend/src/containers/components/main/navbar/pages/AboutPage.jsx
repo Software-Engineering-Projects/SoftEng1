@@ -2,7 +2,6 @@
 import React from 'react';
 import { Avatar, Blockquote, Rating } from 'flowbite-react';
 
-import { NavLink } from 'react-router-dom';
 import { Button, Timeline } from 'flowbite-react';
 import { HiArrowNarrowRight } from 'react-icons/hi';
 export const AboutPage = () => {

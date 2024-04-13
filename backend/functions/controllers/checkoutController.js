@@ -10,6 +10,7 @@ const orderCollectionRef = db.collection("orders");
 const checkoutSessionSchema = require("../models/checkoutModel");
 const Joi = require("joi");
 const orderSchema = require("../models/orderModel");
+const isCartOwner = require("../helpers/checkCartOwner");
 // TODO: Create a checkout function that will handle the payment intent
 // TODO: Create a createCheckoutSession function that will handle the checkout session
 // TODO: Create a function that will handle the webhook for the checkout session
@@ -32,62 +33,67 @@ const webhookEventHandler = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${error.message}`);
   }
 
-  switch (event.type) {
-    case "charge.succeeded":
-      event.charge = event.data.object;
-      await realtimeDb.ref("charges_webhook").child(event.charge.id).set({
-        chargeId: event.charge.id,
-        amount: event.charge.amount,
-      });
-      // console.log(event.charge.receipt_email, "Your payment was successful", "Here is your receipt");
-      break;
-    case "payment_intent.created":
-      event.paymentIntent = event.data.object;
-      await realtimeDb.ref("payment_intents_webhook").child(event.paymentIntent.id).set({
-        paymentIntentId: event.paymentIntent.id,
-        amount: event.paymentIntent.amount,
-      });
-      // console.log(event.paymentIntent.receipt_email, "Your payment is being processed", "We will notify you once your payment is confirmed");
-      break;
-    case "charge.failed":
-      event.charge = event.data.object;
-      await realtimeDb.ref("charges_webhook").child(event.charge.id).update({
-        chargeStatus: event.charge.status,
-        paid: false,
-      });
-      console.log(event.charge.receipt_email, "Your payment failed", "Please try again or contact us for support");
-      break;
-    case "payment_intent.succeeded":
-      event.paymentIntent = event.data.object;
-      await realtimeDb.ref("payment_intents_webhook").child(event.paymentIntent.id).update({
-        paymentStatus: event.paymentIntent.status,
-        paid: event.paymentIntent.status === "succeeded",
-      });
-      break;
-    case "payment_intent.canceled":
-      event.paymentIntent = event.data.object;
-      break;
-    case "payment_intent.payment_failed":
-      event.failedPaymentIntent = event.data.object;
-      await realtimeDb.ref("payment_intents_webhook").child(event.failedPaymentIntent.id).update({
-        paymentStatus: event.failedPaymentIntent.status,
-        paid: false,
-      });
-      break;
-    case "product.created":
-      break;
-    case "price.created":
-      break;
-    case "checkout.session.completed":
-      try {
+  try {
+    switch (event.type) {
+      case "charge.succeeded":
+        event.charge = event.data.object;
+        await realtimeDb.ref("charges_webhook").child(event.charge.id).set({
+          chargeId: event.charge.id,
+          amount: event.charge.amount,
+        });
+        // console.log(event.charge.receipt_email, "Your payment was successful", "Here is your receipt");
+        break;
+      case "payment_intent.created":
+        event.paymentIntent = event.data.object;
+        await realtimeDb.ref("payment_intents_webhook").child(event.paymentIntent.id).set({
+          paymentIntentId: event.paymentIntent.id,
+          amount: event.paymentIntent.amount,
+        });
+        // console.log(event.paymentIntent.receipt_email, "Your payment is being processed", "We will notify you once your payment is confirmed");
+        break;
+      case "charge.failed":
+        event.charge = event.data.object;
+        await realtimeDb.ref("charges_webhook").child(event.charge.id).update({
+          chargeStatus: event.charge.status,
+          paid: false,
+        });
+        console.log(event.charge.receipt_email, "Your payment failed", "Please try again or contact us for support");
+        break;
+      case "payment_intent.succeeded":
+        event.paymentIntent = event.data.object;
+        await realtimeDb.ref("payment_intents_webhook").child(event.paymentIntent.id).update({
+          paymentStatus: event.paymentIntent.status,
+          paid: event.paymentIntent.status === "succeeded",
+        });
+        break;
+      case "payment_intent.canceled":
+        event.paymentIntent = event.data.object;
+        break;
+      case "payment_intent.payment_failed":
+        event.failedPaymentIntent = event.data.object;
+        await realtimeDb.ref("payment_intents_webhook").child(event.failedPaymentIntent.id).update({
+          paymentStatus: event.failedPaymentIntent.status,
+          paid: false,
+        });
+        break;
+      case "product.created":
+        break;
+      case "price.created":
+        break;
+      case "checkout.session.completed":
         const session = event.data.object;
         console.log("Checkout session completed", session.id, session.payment_status);
 
-        await realtimeDb.ref(`checkout_sessions_webhook/${session.id}`).update({
-          paymentStatus: session.payment_status,
-          paymentIntentId: session.payment_intent,
-          paid: session.payment_status === "paid",
-        });
+        if (session.payment_status !== "paid") {
+          console.log("Checkout session is not paid.");
+          res.status(409).send({ success: true, msg: "Checkout session is not paid" });
+          return;
+        }
+
+        const customerId = session.customer;
+        const customer = await stripe.customers.retrieve(customerId);
+        const { customer_email, name } = customer;
+
         const order = {
           userId: session.metadata.userId || "NA",
           cartId: session.metadata.cartId || "NA",
@@ -116,15 +122,23 @@ const webhookEventHandler = async (req, res) => {
         const orderId = orderCollectionRef.doc().id;
         await orderCollectionRef.doc(orderId).set(value);
         console.log("Order created successfully", orderId);
-      } catch (error) {
-        console.error("Error processing checkout session:", error.message);
-        return res.status(500).send({ success: false, msg: `Error processing checkout session[SERVER] ${error.message}` });
-      }
-      break;
-    default:
-      console.log(`Unhandled event type: ${event.type}`);
+
+        await realtimeDb.ref(`checkout_sessions_webhook/${session.id}`).update({
+          paymentStatus: session.payment_status,
+          paymentIntentId: session.payment_intent,
+          paid: session.payment_status === "paid",
+        });
+
+        break;
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+
+    res.status(200).send({ received: true, event });
+  } catch (error) {
+    console.error("Error processing webhook event:", error.message);
+    return res.status(500).send({ success: false, msg: `Error processing webhook event[SERVER] ${error.message}` });
   }
-  res.status(200).send({ received: true, event });
 };
 
 // TODO:
@@ -172,30 +186,42 @@ const createCheckoutIntentServer = async (req, res) => {
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    console.log(session);
+
+    if (!session) {
+      res.status(404).send({ success: false, msg: "Checkout session not found" });
+      return;
+    }
 
     if (session.payment_status === "paid") {
-      console.log("Checkout session is already paid.");
       res.status(409).send({ success: true, id: session.payment_intent, msg: "Checkout session is already paid for" });
       return;
     }
 
     const customerId = session.customer;
     const customer = await stripe.customers.retrieve(customerId);
+
+    if (!customer) {
+      res.status(404).send({ success: false, msg: "Customer not found" });
+      return;
+    }
+
     const { customer_email, name } = customer;
 
     if (totalPrice >= session.amount_total) {
       const paymentIntent = await createPaymentIntent(totalPrice);
 
+      if (!paymentIntent) {
+        res.status(500).send({ success: false, msg: "Failed to create payment intent" });
+        return;
+      }
+
       await chargePaymentIntent(paymentIntent.id);
 
-      // Checks if the session is already paid in the realtime database
       const sessionRef = realtimeDb.ref().child(`checkout_sessions/${sessionId}`);
       const sessionSnapshot = await sessionRef.once("value");
       const sessionData = sessionSnapshot.val();
 
       if (sessionData && sessionData.session && sessionData.session.payment_status === "paid") {
-        console.log("Checkout session is already paid in the realtime database.");
         res.status(409).send({ success: true, id: paymentIntent.id, msg: "Checkout session is already paid for" });
         return;
       }
@@ -236,22 +262,28 @@ const createCheckoutIntentServer = async (req, res) => {
 // ">  Error creating or retrieving checkout session: Cannot set headers after they are sent to the client"
 const createCheckoutSessionServer = async (req, res) => {
   const { userId, cartId } = req.body;
-  const user = await admin.auth().getUser(userId);
-  if (!user) {
-    return res.status(404).send({ success: false, msg: "User not found" });
+  if (!userId || !cartId) {
+    return res.status(400).send({ success: false, msg: "User ID and Cart ID are required" });
   }
-  const cartDoc = await cartCollectionRef.doc(cartId).get();
-  if (!cartDoc.exists) {
-    return res.status(404).send({ success: false, msg: "CART NOT FOUND [SERVER]" });
-  }
-  const customerName = user.providerData[0].displayName || user.email;
-  req.body.customerName = customerName;
-  const { error, value } = checkoutSessionSchema.validate(req.body);
-  if (error) {
-    console.error(`Validation error: ${error.message}`);
-    return res.status(400).send(error.message);
+  if (!isCartOwner(cartId, userId)) {
+    return res.status(403).send({ success: false, msg: "Unauthorized" });
   }
   try {
+    const user = await admin.auth().getUser(userId);
+    if (!user) {
+      return res.status(404).send({ success: false, msg: "User not found" });
+    }
+    const cartDoc = await cartCollectionRef.doc(cartId).get();
+    if (!cartDoc.exists) {
+      return res.status(404).send({ success: false, msg: "CART NOT FOUND [SERVER]" });
+    }
+    const customerName = user.providerData[0].displayName || user.email;
+    req.body.customerName = customerName;
+    const { error, value } = checkoutSessionSchema.validate(req.body);
+    if (error) {
+      console.error(`Validation error: ${error.message}`);
+      return res.status(400).send(error.message);
+    }
     let session;
     const existingCustomer = await stripe.customers.list({ id: value.customerId, limit: 1 });
     let customer;
@@ -287,6 +319,7 @@ const createCheckoutSessionServer = async (req, res) => {
         userId,
       },
     });
+
     console.log("Checkout session created successfully. Session ID: ", session.id);
 
     await realtimeDb.ref().child(`checkout_sessions/${session.id}`).set({
@@ -304,8 +337,7 @@ const createCheckoutSessionServer = async (req, res) => {
     });
 
     res.status(200).json({ success: true, id: session.id, url: session.url });
-  }
-  catch (error) {
+  } catch (error) {
     console.error(`Error creating or retrieving checkout session: ${error.message}`);
     res.status(500).send(error.message);
   }
@@ -361,6 +393,9 @@ const getCheckoutSessionByIdServer = async (req, res, next) => {
   const sessionId = req.params.sessionId;
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (!session) {
+      return res.status(404).send({ success: false, msg: "Session not found" });
+    }
     return res.status(200).send({ success: true, data: session });
   } catch (error) {
     return res.status(500).send({ success: false, msg: `GET SESSION BY ID ERROR [SERVER] ${error.message}` });
@@ -370,6 +405,10 @@ const getCheckoutSessionByIdServer = async (req, res, next) => {
 const getSessionLineItemsServer = async (req, res, next) => {
   const sessionId = req.params.sessionId;
   try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (!session) {
+      return res.status(404).send({ success: false, msg: "Session not found" });
+    }
     const lineItems = await stripe.checkout.sessions.listLineItems(sessionId);
     return res.status(200).send({ success: true, data: lineItems });
   } catch (error) {

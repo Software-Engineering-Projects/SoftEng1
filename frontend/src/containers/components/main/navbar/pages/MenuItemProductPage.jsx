@@ -20,9 +20,6 @@ import {
   Tooltip,
   IconButton,
 } from "@material-tailwind/react";
-import { FaStarOfLife } from 'react-icons/fa6';
-// import { LoginModal } from '../../../LoginModal';
-
 
 // TODO: This is correct now its adding the sizes and addons option to the base price which is correct however my products data is defined to provide the overall value not the added value to the base price. So I need to change the data to reflect the added value to the base price instead of the overall value.
 
@@ -68,8 +65,6 @@ const AnimatedNumber = ({ value, commas }) => {
   );
 };
 
-
-
 export const MenuItemProductPage = () => {
   const user = useSelector((state) => state.user);
 
@@ -97,7 +92,6 @@ export const MenuItemProductPage = () => {
   const [selectedAddOn, setSelectedAddOn] = useState('');
   const [totalPrice, setTotalPrice] = useState(calculateTotalPrice());
   const [productIdentifier, setProductIdentifier] = useState('');
-  const overallPrice = totalPrice * quantity;
   console.log("productIdentifier:", productIdentifier)
   useEffect(() => {
     setTotalPrice(calculateTotalPrice());
@@ -114,10 +108,6 @@ export const MenuItemProductPage = () => {
 
     return isNaN(rawTotal) ? 0 : rawTotal;
   }
-
-  const handleQuantityChange = (e) => {
-    setQuantity(parseInt(e.target.value, 10));
-  };
 
   const incrementQuantity = () => {
     setQuantity((prevQuantity) => prevQuantity + 1);
@@ -234,9 +224,6 @@ export const MenuItemProductPage = () => {
               />
             </div>
             <span className='flex flex-col items-center justify-center font-bold text-2xl pt-4'>{searchedItem.productName}</span>
-            <button className='absolute top-0 right-0 m-2'>
-              {/* Add your favorite icon (e.g., Heart) */}
-            </button>
           </div>
 
           {/* Card Body */}

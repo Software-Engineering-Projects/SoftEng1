@@ -28,6 +28,6 @@ TODO: Note these are set as functionalities or sub menus, user can have all thes
 │   ├── Sales Reports (These can be set as daily, weekly, monthly, yearly)
 │   └── Inventory Reports
 └── Settings /
-    ├── Profile Settings 
-    ├── Payment Settings 
+    ├── Profile Settings
+    ├── Payment Settings
     └── Notification Settings

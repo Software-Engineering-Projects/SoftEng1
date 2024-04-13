@@ -7,7 +7,7 @@ import { Radio } from 'flowbite-react';
 import { BsCashStack, BsPaypal } from "react-icons/bs";
 import { Coins } from 'lucide-react';
 import { useState } from "react";
-import { RiVisaFill } from "react-icons/ri";
+import { GrStripe } from "react-icons/gr";
 import { SiVisa } from "react-icons/si";
 import { FaCcVisa } from "react-icons/fa6";
 export const Checkout = () => {
@@ -23,18 +23,28 @@ export const Checkout = () => {
   console.log("Cart Total Price", cartTotalPrice)
   const [selectedPayment, setSelectedPayment] = useState('');
   console.log("Selected Payment", selectedPayment)
-  const [cardNumber, setCardNumber] = useState('');
-  const [expirationDate, setExpirationDate] = useState('');
-  const [cvv, setCVV] = useState('');
-  const handleCardNumberChange = (e) => setCardNumber(e.target.value);
-  const handleExpirationDateChange = (e) => setExpirationDate(e.target.value);
-  const handleCVCChange = (e) => setCVV(e.target.value);
-  console.log("Card Number", cardNumber)
-  console.log("Expiration Date", expirationDate)
-  console.log("CVV", cvv)
 
+  // TODO: Add validation, if no payment method is selected, show an error message, if no contact information is provided, show an error message, if no shipping information is provided, show an error message
+  const onClickHandler = () => {
+    paymentCheckoutPage();
+    console.log("Pay Order")
+  }
+  // TODO: Add all the different payment channels
+  const paymentCheckoutPage = () => {
+    if (selectedPayment === 'stripe') {
+      console.log("Redirect to Stripe [PAYMENT CHECKOUT PAGE]")
+    }
+    if (selectedPayment === 'cash') {
+      console.log("Make sure to have cash ready [PAYMENT CHECKOUT PAGE]")
+    }
+    if (selectedPayment === 'paypal') {
+      console.log("Redirect to PayPal [PAYMENT CHECKOUT PAGE]")
+    }
+    if (selectedPayment === 'appWallet') {
+      console.log("Use In-App Credits [PAYMENT CHECKOUT PAGE]")
+    }
+  }
   return (
-
     <div className="grid grid-cols-2 gap-8 max-w-4xl mx-auto p-4">
       <div className="col-span-2">
         <h1 className="text-3xl font-bold my-6 text-center">Checkout</h1>
@@ -44,62 +54,23 @@ export const Checkout = () => {
         <h2 className="text-xl font-semibold mb-2 text-gray-700">Payment Method</h2>
         <div className="flex flex-col items gap-y-2">
           <label
-            htmlFor="visa"
-            className={`flex items-center bg-white border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-white dark:border-gray-700 dark:text-gray-900 me-2 mb-2 ${selectedPayment === 'visa' ? 'ring-2 ring-[#3182ce]' : ''
+            htmlFor="stripe"
+            className={`flex items-center bg-white border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-white dark:border-gray-700 dark:text-gray-900 me-2 mb-2 ${selectedPayment === 'stripe' ? 'ring-2 ring-[#3182ce]' : ''
               }`}
           >
             <Radio
-              id="visa"
+              id="stripe"
               name="payment"
-              value="visa"
-              checked={selectedPayment === 'visa'}
-              onChange={() => setSelectedPayment('visa')}
+              value="stripe"
+              checked={selectedPayment === 'stripe'}
+              onChange={() => setSelectedPayment('stripe')}
             />
             <span className="flex items-center">
-              <FaCcVisa className='w-6 h-6 ml-2 text-blue-500' />
+              <GrStripe className='w-6 h-6 ml-2 text-blue-500' />
               <span className="w-4 h-4 me-2 -ms-4 text-[#626890]"></span>
-              Pay with Visa
+              Pay with Stripe
             </span>
           </label>
-
-          {selectedPayment === 'visa' && (
-            <div
-              className={`grid gap-y-2 transition-all duration-500 ease-in-out ${selectedPayment === 'visa' ? 'max-h-[200px] grid-rows-2 mb-4' : 'max-h-0 grid-rows-0'
-                }`}
-            >
-              <div className="grid grid-cols-2 gap-x-4">
-                <label className="col-span-2">
-                  Card Number
-                  <input
-                    type="text"
-                    value={cardNumber}
-                    onChange={handleCardNumberChange}
-                    className="w-full border border-gray-300 rounded-md p-2"
-                  />
-                </label>
-              </div>
-              <div className="grid grid-cols-2 gap-x-4">
-                <label>
-                  Expiration Date
-                  <input
-                    type="text"
-                    value={expirationDate}
-                    onChange={handleExpirationDateChange}
-                    className="w-full border border-gray-300 rounded-md p-2"
-                  />
-                </label>
-                <label>
-                  CVV
-                  <input
-                    type="text"
-                    value={cvv}
-                    onChange={handleCVCChange}
-                    className="w-full border border-gray-300 rounded-md p-2"
-                  />
-                </label>
-              </div>
-            </div>
-          )}
 
           <label
             htmlFor="cash"
@@ -211,9 +182,9 @@ export const Checkout = () => {
       </div>
 
       <h2 className="text-2xl font-semibold mb-4 text-gray-700 flex flex-col col-span-2 mt-auto">Contact Information</h2>
-      <div className="border-b pb-4 mb-4 col-span-2 md:col-span-1">
-        <div className="flex flex-col space-y-2">
-          <label className="text-gray-600" htmlFor="mobile-number">
+      <div className="border-b pb-8 mb-4 col-span-2 md:col-span-1 space-y-4">
+        <div className="flex flex-col">
+          <label className="text-gray-600 font-medium" htmlFor="mobile-number">
             Mobile Number
           </label>
           <input
@@ -223,7 +194,7 @@ export const Checkout = () => {
             type="tel"
           />
         </div>
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col">
           <label className="text-gray-600 font-medium" htmlFor="name">
             Name
           </label>
@@ -310,8 +281,9 @@ export const Checkout = () => {
         </div>
       </div>
 
-
-      <button className="col-span-2 mt-4 mb-8 w-full rounded-md bg-red-700 hover:bg-red-800 px-6 py-3 font-medium text-white">
+      {/* TODO: Add Stripe Redirect to this */}
+      {/* TODO: Add modal to confirm all the details input */}
+      <button onClick={onClickHandler} className="col-span-2 mt-4 mb-8 w-full rounded-md bg-red-600 hover:bg-red-700 px-6 py-3 font-medium text-white">
         Place Order
       </button>
     </div >
