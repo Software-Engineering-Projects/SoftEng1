@@ -5,7 +5,7 @@ import { Minus, Plus, Trash2Icon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { removeFromCart, addToCart, increaseQuantity, reduceQuantity, clearCart } from '../../../../../context/actions/cartAction';
-import { productsMockData } from '../../../dashboard/pages/mock/productsMockData';
+import { MdOutlineRemoveShoppingCart } from "react-icons/md";
 import { toast } from 'react-hot-toast'
 // TODO: Update the cart when choosing different sizes and addons from initial product page, and add the price of the addons to the total price
 // TODO: Fix image to be displayed in the cart, for now its the local JSON, but im setting up the firebase functionality already
@@ -13,8 +13,6 @@ import { toast } from 'react-hot-toast'
 // TODO: Add the addons price, which must also be fetched from the backend
 
 // TODO: Add the increment and decrement function for the quantity
-
-
 
 // TODO: Fetch the cart data from the global store
 export const Cart = () => {
@@ -48,8 +46,6 @@ export const Cart = () => {
     return <p>Loading...</p>
   }
 
-
-
   const handleRemoveCartItem = (productIdentifier) => {
     if (productIdentifier) {
 
@@ -63,8 +59,6 @@ export const Cart = () => {
       console.error("Could not find productIdentifier in the cart.");
     }
   };
-
-
 
   const handleIncreaseQuantity = (productIdentifier) => {
     dispatch(increaseQuantity(productIdentifier));
@@ -119,9 +113,10 @@ export const Cart = () => {
                         </div>
                       </div>
 
-                      {(!cartItems || cartItems.length === 0) ? (
-                        <div className="absolute top-12 ml-24 mt-72">
+                      {(cartItems.length === 0) ? (
+                        <div className="absolute top-12 ml-24 mt-72 flex flex-col items-center justify-center">
                           <p className="text-2xl font-semibold text-gray-800">Your cart is empty</p>
+                          <MdOutlineRemoveShoppingCart className="w-24 h-24 mt-8 text-red-600" />
                         </div>
                       ) : (
                         <>
@@ -213,7 +208,6 @@ export const Cart = () => {
                       )}
                       <div className="mt-6 flex justify-center text-center text-sm text-gray-700">
                         <p>
-
                           <button
                             type="button"
                             className="font-medium text-blue-600 hover:text-blue-500"

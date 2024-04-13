@@ -11,7 +11,7 @@ export const SearchInputMainPage = () => {
           type="text"
           id="simple-search"
           className="flex bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Search food item..."
+          placeholder="Search for something"
           required
         />
       </div>

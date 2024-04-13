@@ -14,14 +14,6 @@ import {
   ShieldX,
 } from 'lucide-react';
 import { DashboardHeader } from './components/DashboardHeader';
-import { Route, Routes } from 'react-router-dom';
-import { DashboardOrders } from './pages/DashboardOrders';
-import { DashboardUsers } from './pages/DashboardUsers';
-import { DashboardProducts } from './pages/DashboardProducts';
-import { DashboardRestaurants } from './pages/DashboardRestaurants';
-import { DashboardSettings } from './pages/DashboardSettings';
-import { DashboardReports } from './pages/DashboardReports';
-import { DashboardOverview } from './pages/DashboardOverview';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserCount } from '../../../api';
 import { setUserCount } from '../../../context/actions/userCountAction';
@@ -31,6 +23,8 @@ import { getAuth } from 'firebase/auth';
 import { app } from '../../../config/firebase.config';
 import { useNavigate } from 'react-router-dom';
 import { Button, Modal } from 'flowbite-react';
+import { Outlet } from 'react-router-dom';
+
 export const MainDashboard = () => {
   // TODO: Add check on whether the current user is an admin or not
   // TODO: Orders, Products, Restaurants, Reports, Settings Create the functionality for each of these pages
@@ -43,9 +37,6 @@ export const MainDashboard = () => {
 
 
   const roleType = useSelector((state) => state.roleType);
-
-
-  // Fetching user count from the backend
   const userCount = useSelector((state) => state.userCount);
 
   console.log('roleType:', roleType);
@@ -88,7 +79,6 @@ export const MainDashboard = () => {
   // }, [count, navigate, openModal]);
 
 
-  // Properly gets the count of users now
   useEffect(() => {
     getUserCount().then((count) => {
       dispatch(setUserCount(count));
@@ -165,8 +155,6 @@ export const MainDashboard = () => {
         </div>
       </Modal>
       {/* )} */}
-
-
 
 
       <button
@@ -313,23 +301,11 @@ export const MainDashboard = () => {
       )}
 
       {/* Grid Layout */}
-      {/* TODO: Add these route to the routes.js */}
-      {/* FIXME: Multiple components do not share the same route namely the pagination, table, searchbar, add button when using the routes.js ... */}
-      {/* FIXME: Not properly sharing components when routing in the routes.js */}
-      <div className="px-4 pt-4 md:ml-64 ">
+      <div className="px-4 pt-4 md:ml-64">
         <DashboardHeader />
-        <div className="p-4 rounded-lg ">
-          <div className="bg-slate-100">
-            <Routes>
-              <Route path="/" element={<DashboardOverview />} />
-              <Route path="/orders" element={<DashboardOrders />} />
-              <Route path="/users" element={<DashboardUsers />} />
-              <Route path="/products" element={<DashboardProducts />} />
-              <Route path="/restaurants" element={<DashboardRestaurants />} />
-              <Route path="/reports" element={<DashboardReports />} />
-              <Route path="/settings" element={<DashboardSettings />} />
-            </Routes>
-          </div>
+        <div className="p-4 rounded-lg">
+          {/* This Outlet will render the matched child route component */}
+          <Outlet />
         </div>
       </div>
       {/* | above Grid Layout */}

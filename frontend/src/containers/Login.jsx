@@ -13,7 +13,6 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { NavLink } from 'react-router-dom';
-import { setRoleType } from '../context/actions/userRoleAction';
 
 
 export const Login = () => {
@@ -23,7 +22,6 @@ export const Login = () => {
   const [registerPassword, setRegisterPassword] = useState('');
   const [username, setUsername] = useState('');
   // ADMIN ROLE
-  const [role, setRole] = useState('admin');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
   const [showRegisterPasswordRequirements, setRegisterPasswordRequirements] =
@@ -36,13 +34,6 @@ export const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const firebaseAuth = getAuth(app);
-
-  // const userState = useSelector((state) => state.user);
-  // useEffect(() => {
-  //   if (userState) {
-  //     navigate("/", { replace: true });
-  //   }
-  // }, [navigate, userState]);
 
   const handleConfirmPasswordRegisterChange = (event) => {
     const newConfirmPassword = event.target.value;
@@ -65,13 +56,6 @@ export const Login = () => {
     );
   };
 
-  //   // Set the default role as "user"
-  // const defaultRole = "user";
-
-  // // Get the user ID from the user credential using redux
-  // const userId = userCred.user.uid;
-
-
   const signUpWithEmailPass = async () => {
     setEmail('');
     setRegisterPassword('');
@@ -93,8 +77,6 @@ export const Login = () => {
 
       dispatch(setUserDetails(userDetails));
       dispatch(setUserName(username));
-      dispatch(setRoleType(role));
-
       // TODO: After confirming the email the user should be redirected to the login page
       // TODO: Create a verification page for the user to verify their email | maybe also setup a resend email verification?
 
@@ -138,7 +120,6 @@ export const Login = () => {
 
       const userDetails = userCred.user;
       dispatch(setUserDetails(userDetails));
-      dispatch(setRoleType(role));
       if (userDetails.emailVerified) {
         const searchParams = new URLSearchParams(window.location.search);
         const redirectTo = searchParams.get('redirectTo');

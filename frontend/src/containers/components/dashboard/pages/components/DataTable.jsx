@@ -24,6 +24,7 @@ export const DataTable = ({ header, data, activePage, itemsPerPage, imageColumns
       <Table>
         <thead className="flex-none overflow-x-auto">
           <tr>
+            {/* TODO: Fix this */}
             <th className="p-4"></th>
             <th className="p-4">
               <span className="text-gray-800">#</span>

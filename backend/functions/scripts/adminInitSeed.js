@@ -2,10 +2,10 @@ const { app } = require("../index.js");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
 // NOTE: This is the api key, make sure to replace this with your own api key from resend
-const resendApiKey = "re_eWrsypSR_Ha4hcHuVqurd3aCTWtAaHNGK";
+const resendApiKey = "your-api-key-here";
 const resend = new Resend(resendApiKey);
 // NOTE: MAKE SURE TO REPLACE THIS PLACEHOLDER WITH YOUR OWN EMAIL ADDRESS, as for testing environments this require your own email address associated with it
-const yourEmailAddress = "danielevans254@yahoo.com";
+const yourEmailAddress = "your-email-address-here";
 /**
  * Initializes the admin role.
 // NOTE: This is a script that will seed firebase auth with an admin user, this is only for development purposes, and is hardcoded for now.

@@ -417,7 +417,7 @@ export const DashboardAddProducts = () => {
         uploadImageToFirebase(acceptedFiles[0]);
       }
     },
-    // maxImageSize: maxImageSize, 
+    // maxImageSize: maxImageSize,
 
   });
 

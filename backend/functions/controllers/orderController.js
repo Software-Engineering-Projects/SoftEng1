@@ -12,7 +12,7 @@ const orderTestRouteServer = (_req, res, next) => {
 // TODO:
 const getAllOrdersServer = async (_req, res, next) => {
   try {
-    const querySnapshot = await db.collection("orders").get();
+    const querySnapshot = await orderCollectionRef.get();
 
     const response = querySnapshot.docs.map((doc) => {
       return { id: doc.id, ...doc.data() };
@@ -31,7 +31,7 @@ const createOrderServer = async (req, res) => {
   try {
     const { id, cartId } = req.body;
 
-    const newOrder = await db.collection("orders").add({
+    const newOrder = await orderCollectionRef.add({
       id,
       cartId,
       userId,
@@ -61,7 +61,7 @@ const updateOrderStatusServer = async (req, res, next) => {
       return res.status(400).send({ success: false, msg: "Invalid status" });
     }
 
-    const order = await db.collection("orders").doc(orderId).update({
+    const order = await orderCollectionRef.doc(orderId).update({
       status,
     });
 
@@ -75,13 +75,13 @@ const viewCustomerOrders = async (req, res, next) => {
   const userId = req.params.userId;
 
   try {
-    const orders = await db.collection("orders").where("userId", "==", userId).get();
+    const orders = await orderCollectionRef.where("userId", "==", userId).get();
 
     if (orders.empty) {
       return res.status(404).send({ success: false, msg: "No orders found for this user" });
     }
 
-    const ordersData = orders.docs.map(doc => doc.data());
+    const ordersData = orders.docs.map((doc) => doc.data());
 
     return res.status(200).send({ success: true, data: ordersData });
   } catch (error) {
@@ -93,7 +93,7 @@ const getOrderByIdServer = async (req, res, next) => {
   const orderId = req.params.orderId;
 
   try {
-    const order = await db.collection("orders").doc(orderId).get();
+    const order = await orderCollectionRef.doc(orderId).get();
 
     if (!order.exists) {
       return res.status(404).send({ success: false, msg: "Order not found" });
