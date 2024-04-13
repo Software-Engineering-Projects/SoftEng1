@@ -34,9 +34,9 @@ import { useDropzone } from 'react-dropzone';
 import Switch from 'react-switch';
 import { useForm, Controller, useWatch, useFieldArray } from 'react-hook-form';
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import { storage } from '../../../../../config/firebase.config';
+import { storage } from '../../../../config/firebase.config';
 import { useDispatch } from 'react-redux';
-import { addNewProduct, getAllProducts } from '../../../../../api';
+import { addNewProduct, getAllProducts } from '../../../../api';
 
 const categories = [
   'Burgers',

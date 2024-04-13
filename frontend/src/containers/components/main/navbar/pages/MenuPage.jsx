@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { MenuItemProductPage } from './MenuItemProductPage';
 import toast from "react-hot-toast";
+
 const menuItems = productsMockData.map(product => ({
   id: product.id,
   imageSrc: product.productImage,
@@ -20,7 +21,6 @@ const menuItems = productsMockData.map(product => ({
   ingredients: product.ingredients,
   description: product.description,
 }));
-
 
 const renderImages = (imageSrc, itemName) => {
   if (Array.isArray(imageSrc)) {
@@ -54,6 +54,7 @@ const renderImages = (imageSrc, itemName) => {
     );
   }
 };
+
 const MenuItem = ({ id, imageSrc, itemName, basePrice, ingredients, description }) => {
   const maxLength = 65;
   const truncateDescription = (description) => {
@@ -97,7 +98,6 @@ const MenuItem = ({ id, imageSrc, itemName, basePrice, ingredients, description 
           <Clock className='w-4 h-4' />
         </button>
 
-
         <div className="bg-white dark:bg-gray-800 p-6 flex flex-col space-y-4">
           <div className='flex justify-between'>
             <span className="text-gray-800 dark:text-white text-xl font-semibold">{itemName}</span>
@@ -112,43 +112,13 @@ const MenuItem = ({ id, imageSrc, itemName, basePrice, ingredients, description 
           <div className='text-gray-700 dark:text-white text-base leading-relaxed'>
             {truncateDescription(description)}
           </div>
-          {/* <div className='flex items-center'>
-            <Label htmlFor="addOns" value="Ingredients" className='pr-2 text-gray-600' />
-            <Tooltip
-              content={
-                <div className="w-80">
-                  <Typography color="white" className="font-medium text-lg mb-2">
-                    Ingredients Full List
-                  </Typography>
-                  <Typography
-                    variant="small"
-                    color="white"
-                    className="font-normal opacity-80"
-                  >
-                    <p className='leading-relaxed'>
-                      <span className='font-semibold'>
-                        {ingredients.join(', ')}
-                      </span>
-                    </p>
-                  </Typography>
-                </div>
-              }
-            >
-              <Eye className='w-6 h-6 hover:text-blue-600' />
-            </Tooltip>
-          </div> */}
-
-
         </div>
       </div>
     </Link>
   );
 };
 
-
 export const MenuPage = () => {
-
-
   return (
     <div className="bg-gray-100 dark:bg-gray-800">
       <section className="container mx-auto py-10 px-6">
@@ -177,5 +147,3 @@ export const MenuPage = () => {
     </div>
   );
 };
-
-

@@ -72,10 +72,6 @@ export const MenuItemProductPage = () => {
   const { id } = useParams();
   const searchedItem = productsMockData.find(item => item.id === parseInt(id, 10));
   const cartItems = useSelector((state) => state.cart.items);
-
-
-  console.log("cartItems:", cartItems)
-  console.log("searchedItem:", searchedItem)
   // TODO: Add better styling to this page
   if (!searchedItem) {
     return (
@@ -96,7 +92,6 @@ export const MenuItemProductPage = () => {
   useEffect(() => {
     setTotalPrice(calculateTotalPrice());
   }, [selectedSize, selectedAddOn, searchedItem]);
-
 
   function calculateTotalPrice() {
     const selectedSizePrice = selectedSize ? searchedItem.sizes.find((size) => size.name === selectedSize)?.price || 0 : 0;

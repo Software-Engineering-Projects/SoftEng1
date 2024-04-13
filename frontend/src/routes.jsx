@@ -46,7 +46,7 @@ import { MenuItemProductPage } from "./containers/components/main/navbar/pages/M
 function MainPageRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      {/* <Route path="/" element={<HomePage />} /> */}
       <Route path="/login" element={<Login />} />
       {/* <Route path="*" element={<NotFoundPage />} /> */}
     </Routes>

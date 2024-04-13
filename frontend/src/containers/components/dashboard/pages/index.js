@@ -15,7 +15,7 @@ export { SearchFilter } from './components/SearchFilter.jsx'
 export { UploadBox } from './components/UploadBox.jsx'
 
 // Add Dashboard Pages
-export { DashboardAddProducts } from './dashboardAddProducts/DashboardAddProducts.jsx'
+export { DashboardAddProducts } from './DashboardAddProducts.jsx'
 export { DashboardAddRestaurants } from './DashboardAddRestaurants.jsx'
 export { DashboardAddUsers } from './DashboardAddUsers.jsx'
 
