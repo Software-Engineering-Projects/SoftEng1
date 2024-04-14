@@ -3,7 +3,7 @@ const db = admin.firestore();
 const productsCollectionRef = db.collection("products");
 const { productSchema, updateProductSchema } = require("../models/productModel");
 const { productClickTrackerIncrement } = require("./reports/productReportController");
-
+const { createCombination } = require("../scripts/createProductIdentifier");
 // NOTE: All of these endpoints are working as expected, further test should still be made to ensure that the data is being stored and retrieved correctly.
 
 // NOTE: To get a sample response from these API endpoints refer to the readme in the route directory
@@ -25,6 +25,8 @@ const addNewProductServer = async (req, res, next) => {
       };
 
       productsCollectionRef.add(product).then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+        createCombination(docRef.id);
         return res.status(201).send({ msg: "Product created successfully", data: product, id: docRef.id });
       }).catch((error) => {
         console.error("Error adding document: ", error);

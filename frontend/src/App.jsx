@@ -7,12 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { setUserDetails, setUserNull } from "./context/actions/userActions.js";
-import { GlobalAlert } from "./containers/components/main/GlobalAlert.jsx";
-import { Loader } from "./components/Loader.jsx";
+import { Loader } from "@/global-components/global-component-index.js";
 import AllRoutes from "./routes.jsx";
 import { setRoleType, setRoleNull } from "./context/actions/userRoleAction";
 import { getUserRole } from "./api/index.js";
-// import { NotFoundPage } from "./components/NotFoundPage.jsx";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -58,11 +56,7 @@ const App = () => {
       <Toaster />
       <Routes>
         <Route path="/*" element={<AllRoutes />} />
-        {/* <Route path="*" element={<NotFoundPage />} /> */}
       </Routes>
-      {!isLoading && alert?.type && (
-        <GlobalAlert type={alert.type} message={alert.message} />
-      )}
     </div>
   );
 };

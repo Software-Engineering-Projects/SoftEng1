@@ -1,4 +1,4 @@
-const { app } = require("../index.js");
+// const { app } = require("../index.js");
 const admin = require("firebase-admin");
 const db = admin.firestore();
 
@@ -32,10 +32,8 @@ const generateIdentifiers = (sizes, addons) => {
   return combinations;
 };
 
-const createCombination = (async (productId) => {
-  // NOTE: Hardcoded for testing purposes for now
-  productId = "yuZWfIavgJV6FoIkaA0s";// The productId you"re working with
-
+// NOTE: This will be invoked upon creating a new product, this will then be used to generate the product identifiers for the given product, which will help distinguish the same product with different options in the cart
+const createCombination = async (productId) => {
   const productRef = db.collection("products").doc(productId);
   const productCombinationsRef = db.collection("product_identifiers").doc(productId);
 
@@ -63,9 +61,8 @@ const createCombination = (async (productId) => {
   } catch (error) {
     console.log("Error getting document:", error);
   }
+};
 
-  process.exit();
-})();
 
 module.exports = {
   createCombination,
