@@ -39,11 +39,6 @@ Before you begin, make sure you have the following installed on your machine:
 
 - Node.js
 
-## Install yarn globally (globally or within your project)
-```
-Run this command
-npm install --global yarn
-
 ```
 ## Clone this repo
 #### Note: You can put this into any directory you want
@@ -88,12 +83,6 @@ Generate new private key
 Copy contents and paste into newly created serviceAccountKey.json
 ```
 
-## Install Dependencies for the backend and frontend folders
-
-```
-yarn install
-```
-
 ## Install Firebase Tools
 ```
 cd to backend/functions
@@ -102,7 +91,6 @@ npm i
 ```
 
 ## Setup backend development server
-
 
 ## Login to the firebase CLI
 ```
@@ -117,7 +105,8 @@ npm run serve
 ## Setup frontend development server 
 ```
 cd to frontend
-yarn dev
+npm install
+npm run dev
 ```
 #### Note: Occasionaly pull latest changes from main
 ```
