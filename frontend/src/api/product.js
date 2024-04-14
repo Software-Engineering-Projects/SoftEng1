@@ -22,3 +22,13 @@ export const getAllProducts = async () => {
     return null;
   }
 };
+
+export const getProductById = async (productId) => {
+  try {
+    const res = await axios.get(`${baseURL}/api/products/${productId}`);
+    return res.data.data;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};

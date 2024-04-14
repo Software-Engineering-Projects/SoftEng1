@@ -9,9 +9,9 @@ import {
   MenuPage,
   AboutPage,
   ContactsPage,
-} from "./containers/components/main/index.js";
+} from "./pages/main/navbar/navbar-pages-index.js";
 
-import { Login } from "./containers/index.js";
+import { LoginPage } from "./auth/auth-index.js";
 
 // User Profile Pages
 import {
@@ -20,7 +20,7 @@ import {
   OrderHistory,
   Transactions,
   Checkout
-} from "./containers/components/user-profile/index.js";
+} from "./pages/user-profile/user-profile-index.js";
 
 // Dashboard Pages
 import {
@@ -33,22 +33,21 @@ import {
   DashboardAddRestaurants,
   DashboardAddUsers,
   DashboardAddProducts
-} from "./containers/components/dashboard/pages/index.js";
+} from "./pages/dashboard/dashboard-pages-index.js";
 
 
 // Main Pages
-import { MainDashboard } from "./containers/components/dashboard/index.js";
-import { TopNavbar } from "./containers/components/main/index.js";
-import { Footer } from "./containers/components/main/navbar/pages/components/Footer.jsx";
-import { MenuItemProductPage } from "./containers/components/main/navbar/pages/MenuItemProductPage.jsx";
+import { MainDashboard } from "./pages/dashboard/dashboard-pages-index.js";
+import { TopNavbar } from "@/global-components/main/navbar/TopNavbar.jsx";
+import { Footer } from "@/global-components/main/main-pages/Footer.jsx";
+import { MenuItemProductPage } from "./pages/main/navbar/navbar-pages-index.js";
 // import { Checkout } from "./containers/components/user-profile/user/pages/Checkout.jsx";
 
 function MainPageRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<Login />} />
-      {/* <Route path="*" element={<NotFoundPage />} /> */}
+      {/* <Route path="/" element={<HomePage />} /> */}
+      <Route path="/login" element={<LoginPage />} />
     </Routes>
   );
 }

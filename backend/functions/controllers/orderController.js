@@ -18,9 +18,9 @@ const getAllOrdersServer = async (_req, res, next) => {
       return { id: doc.id, ...doc.data() };
     });
 
-    return res.status(200).send({ success: true, data: response });
+    return res.status(200).send({ data: response });
   } catch (error) {
-    return res.status(400).send({ success: false, msg: `GET ALL ORDERS ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `GET ALL ORDERS ERROR [SERVER] ${error.message}` });
   }
 };
 
@@ -38,9 +38,9 @@ const createOrderServer = async (req, res) => {
       status: "pending",
     });
 
-    return res.status(200).send({ success: true, data: newOrder });
+    return res.status(200).send({ data: newOrder });
   } catch (error) {
-    return res.status(400).send({ success: false, msg: `CREATE ORDER ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `CREATE ORDER ERROR [SERVER] ${error.message}` });
   }
 };
 
@@ -52,22 +52,35 @@ const updateOrderStatusServer = async (req, res, next) => {
     const { status } = req.body;
 
     if (!status) {
-      return res.status(400).send({ success: false, msg: "Status is required" });
+      return res.status(400).send({ msg: "Status is required" });
     }
     // TODO: Reference this from Joi from the order models schema
     const allowedStatus = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
 
     if (!allowedStatus.includes(status)) {
-      return res.status(400).send({ success: false, msg: "Invalid status" });
+      return res.status(400).send({ msg: "Invalid status" });
     }
 
-    const order = await orderCollectionRef.doc(orderId).update({
+    const orderRef = orderCollectionRef.doc(orderId);
+    const order = await orderRef.get();
+
+    if (!order.exists) {
+      return res.status(404).send({ msg: "Order not found" });
+    }
+
+    const currentStatus = order.data().status;
+
+    if (currentStatus === status) {
+      return res.status(400).send({ msg: "Order status is already the same" });
+    }
+
+    await orderRef.update({
       status,
     });
 
-    return res.status(200).send({ success: true, msg: "Order status updated successfully", data: order });
+    return res.status(200).send({ msg: "Order status updated successfully", data: order.data() });
   } catch (error) {
-    return res.status(400).send({ success: false, msg: `UPDATE ORDER STATUS ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `UPDATE ORDER STATUS ERROR [SERVER] ${error.message}` });
   }
 };
 // NOTE: Now fetches all the orders of a given user not just a single order as that is already given by the getOrderById
@@ -78,14 +91,14 @@ const viewCustomerOrders = async (req, res, next) => {
     const orders = await orderCollectionRef.where("userId", "==", userId).get();
 
     if (orders.empty) {
-      return res.status(404).send({ success: false, msg: "No orders found for this user" });
+      return res.status(404).send({ msg: "No orders found for this user" });
     }
 
     const ordersData = orders.docs.map((doc) => doc.data());
 
-    return res.status(200).send({ success: true, data: ordersData });
+    return res.status(200).send({ data: ordersData });
   } catch (error) {
-    return res.status(400).send({ success: false, msg: `VIEW ORDERS ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `VIEW ORDERS ERROR [SERVER] ${error.message}` });
   }
 };
 
@@ -96,12 +109,12 @@ const getOrderByIdServer = async (req, res, next) => {
     const order = await orderCollectionRef.doc(orderId).get();
 
     if (!order.exists) {
-      return res.status(404).send({ success: false, msg: "Order not found" });
+      return res.status(404).send({ msg: "Order not found" });
     }
 
-    return res.status(200).send({ success: true, data: order.data() });
+    return res.status(200).send({ data: order.data() });
   } catch (error) {
-    return res.status(200).send({ success: true, msg: `GET ORDER BY ID ERROR [SERVER] ${error.message}` });
+    return res.status(200).send({ msg: `GET ORDER BY ID ERROR [SERVER] ${error.message}` });
   }
 };
 

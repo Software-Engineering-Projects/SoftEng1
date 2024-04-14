@@ -44,13 +44,13 @@ const verifyToken = async (token, res, req) => {
     return decodedToken.userId;
   } catch (error) {
     if (error.name === "TokenExpiredError") {
-      res.status(401).send({ success: false, msg: "Token expired" });
+      res.status(401).send({ msg: "Token expired" });
     } else if (error.name === "JsonWebTokenError") {
-      res.status(401).send({ success: false, msg: "Invalid token" });
+      res.status(401).send({ msg: "Invalid token" });
     } else if (error.name === "NotBeforeError") {
-      res.status(401).send({ success: false, msg: "Token not yet valid" });
+      res.status(401).send({ msg: "Token not yet valid" });
     } else if (error.name === "InvalidTokenError") {
-      res.status(401).send({ success: false, msg: "The header or payload could not be parsed" });
+      res.status(401).send({ msg: "The header or payload could not be parsed" });
     } else {
       console.error("Error:", error);
       return null;

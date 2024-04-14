@@ -86,7 +86,7 @@ const webhookEventHandler = async (req, res) => {
 
         if (session.payment_status !== "paid") {
           console.log("Checkout session is not paid.");
-          res.status(409).send({ success: true, msg: "Checkout session is not paid" });
+          res.status(409).send({ msg: "Checkout session is not paid" });
           return;
         }
 
@@ -137,7 +137,7 @@ const webhookEventHandler = async (req, res) => {
     res.status(200).send({ received: true, event });
   } catch (error) {
     console.error("Error processing webhook event:", error.message);
-    return res.status(500).send({ success: false, msg: `Error processing webhook event[SERVER] ${error.message}` });
+    return res.status(500).send({ msg: `Error processing webhook event[SERVER] ${error.message}` });
   }
 };
 
@@ -188,12 +188,12 @@ const createCheckoutIntentServer = async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session) {
-      res.status(404).send({ success: false, msg: "Checkout session not found" });
+      res.status(404).send({ msg: "Checkout session not found" });
       return;
     }
 
     if (session.payment_status === "paid") {
-      res.status(409).send({ success: true, id: session.payment_intent, msg: "Checkout session is already paid for" });
+      res.status(409).send({ id: session.payment_intent, msg: "Checkout session is already paid for" });
       return;
     }
 
@@ -201,7 +201,7 @@ const createCheckoutIntentServer = async (req, res) => {
     const customer = await stripe.customers.retrieve(customerId);
 
     if (!customer) {
-      res.status(404).send({ success: false, msg: "Customer not found" });
+      res.status(404).send({ msg: "Customer not found" });
       return;
     }
 
@@ -211,7 +211,7 @@ const createCheckoutIntentServer = async (req, res) => {
       const paymentIntent = await createPaymentIntent(totalPrice);
 
       if (!paymentIntent) {
-        res.status(500).send({ success: false, msg: "Failed to create payment intent" });
+        res.status(500).send({ msg: "Failed to create payment intent" });
         return;
       }
 
@@ -222,7 +222,7 @@ const createCheckoutIntentServer = async (req, res) => {
       const sessionData = sessionSnapshot.val();
 
       if (sessionData && sessionData.session && sessionData.session.payment_status === "paid") {
-        res.status(409).send({ success: true, id: paymentIntent.id, msg: "Checkout session is already paid for" });
+        res.status(409).send({ id: paymentIntent.id, msg: "Checkout session is already paid for" });
         return;
       }
 
@@ -239,9 +239,9 @@ const createCheckoutIntentServer = async (req, res) => {
         },
       });
 
-      res.status(200).send({ success: true, id: paymentIntent.id });
+      res.status(200).send({ id: paymentIntent.id });
     } else {
-      res.status(400).send({ success: false, msg: "Not enough funds" });
+      res.status(400).send({ msg: "Not enough funds" });
     }
 
   } catch (error) {
@@ -263,19 +263,19 @@ const createCheckoutIntentServer = async (req, res) => {
 const createCheckoutSessionServer = async (req, res) => {
   const { userId, cartId } = req.body;
   if (!userId || !cartId) {
-    return res.status(400).send({ success: false, msg: "User ID and Cart ID are required" });
+    return res.status(400).send({ msg: "User ID and Cart ID are required" });
   }
   if (!isCartOwner(cartId, userId)) {
-    return res.status(403).send({ success: false, msg: "Unauthorized" });
+    return res.status(403).send({ msg: "Unauthorized" });
   }
   try {
     const user = await admin.auth().getUser(userId);
     if (!user) {
-      return res.status(404).send({ success: false, msg: "User not found" });
+      return res.status(404).send({ msg: "User not found" });
     }
     const cartDoc = await cartCollectionRef.doc(cartId).get();
     if (!cartDoc.exists) {
-      return res.status(404).send({ success: false, msg: "CART NOT FOUND [SERVER]" });
+      return res.status(404).send({ msg: "CART NOT FOUND [SERVER]" });
     }
     const customerName = user.providerData[0].displayName || user.email;
     req.body.customerName = customerName;
@@ -336,7 +336,7 @@ const createCheckoutSessionServer = async (req, res) => {
       },
     });
 
-    res.status(200).json({ success: true, id: session.id, url: session.url });
+    res.status(200).json({ id: session.id, url: session.url });
   } catch (error) {
     console.error(`Error creating or retrieving checkout session: ${error.message}`);
     res.status(500).send(error.message);
@@ -356,12 +356,12 @@ const createCheckoutStatusServer = async (req, res, next) => {
     const paymentIntentId = session?.payment_intent;
 
     if (!paymentIntentId) {
-      return res.status(200).send({ success: false, msg: `No payment intent has been made for Session: ${sessionId}` });
+      return res.status(200).send({ msg: `No payment intent has been made for Session: ${sessionId}` });
     }
 
     const paymentIntent = await stripe.paymentIntents?.retrieve(paymentIntentId);
     if ((session.payment_status === "paid" || paymentIntent?.status === "succeeded") && session.status === "complete" && session.url === null) {
-      return res.status(200).send({ success: true, msg: "Checkout session completed" });
+      return res.status(200).send({ msg: "Checkout session completed" });
     }
 
     if (session.payment_status === "unpaid" || paymentIntent?.status === "requires_payment_method") {
@@ -372,10 +372,10 @@ const createCheckoutStatusServer = async (req, res, next) => {
         await chargePaymentIntent(paymentIntent.id);
         await cartCollectionRef.doc(session.cart_id).update({ payment_status: "paid" });
         await stripe.checkout.sessions.update(sessionId, { payment_status: "paid" });
-        return res.status(200).send({ success: true, msg: "Checkout session completed" });
+        return res.status(200).send({ msg: "Checkout session completed" });
       } catch (error) {
         console.error(`Error processing payment: ${error.message}`);
-        return res.status(400).send({ success: false, msg: "Not enough funds" });
+        return res.status(400).send({ msg: "Not enough funds" });
       }
     }
 
@@ -383,7 +383,7 @@ const createCheckoutStatusServer = async (req, res, next) => {
   } catch (error) {
     console.error(`GET CHECKOUT STATUS [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: `GET CHECKOUT STATUS [SERVER] ${error.message}`,
     });
   }
@@ -394,11 +394,11 @@ const getCheckoutSessionByIdServer = async (req, res, next) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     if (!session) {
-      return res.status(404).send({ success: false, msg: "Session not found" });
+      return res.status(404).send({ msg: "Session not found" });
     }
-    return res.status(200).send({ success: true, data: session });
+    return res.status(200).send({ data: session });
   } catch (error) {
-    return res.status(500).send({ success: false, msg: `GET SESSION BY ID ERROR [SERVER] ${error.message}` });
+    return res.status(500).send({ msg: `GET SESSION BY ID ERROR [SERVER] ${error.message}` });
   }
 };
 
@@ -407,12 +407,12 @@ const getSessionLineItemsServer = async (req, res, next) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     if (!session) {
-      return res.status(404).send({ success: false, msg: "Session not found" });
+      return res.status(404).send({ msg: "Session not found" });
     }
     const lineItems = await stripe.checkout.sessions.listLineItems(sessionId);
-    return res.status(200).send({ success: true, data: lineItems });
+    return res.status(200).send({ data: lineItems });
   } catch (error) {
-    return res.status(500).send({ success: false, msg: `GET SESSION LINE ITEMS ERROR [SERVER] ${error.message}` });
+    return res.status(500).send({ msg: `GET SESSION LINE ITEMS ERROR [SERVER] ${error.message}` });
   }
 };
 

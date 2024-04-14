@@ -21,6 +21,7 @@ module.exports = {
     "brace-style": "off",
     "object-curly-spacing": "off",
     "max-len": "off",
+    "prefer-const": "off",
     "indent": ["error", 2, {
       "SwitchCase": 1,
     }],

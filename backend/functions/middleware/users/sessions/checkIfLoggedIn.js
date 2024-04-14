@@ -11,10 +11,10 @@ const checkIfLoggedIn = async (req, res, next) => {
     if (isSessionValid) {
       return next();
     }
-    return res.status(403).send({ success: false, msg: "Session Expired, Login again to continue" });
+    return res.status(403).send({ msg: "Session Expired, Login again to continue" });
   } catch (error) {
     console.error("Error:", error);
-    res.status(403).send({ success: false, msg: "Session Expired, Login again to continue" });
+    res.status(403).send({ msg: "Session Expired, Login again to continue" });
   }
 };
 
