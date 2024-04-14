@@ -3,7 +3,7 @@ const db = admin.firestore();
 
 const isCartOwner = async (cartId, userId) => {
   try {
-    const cart = await db.collection("carts").doc(cartId).get();
+    const cart = await db.collection("cart").doc(cartId).get();
 
     if (!cart.exists) {
       return false;

@@ -61,11 +61,11 @@ const getMostTrendingProducts = async () => {
 const trendingProductsReportServer = async (_req, res, next) => {
   try {
     const data = await getMostTrendingProducts();
-    return res.status(200).send({ success: true, data: data });
+    return res.status(200).send({ data: data });
   } catch (error) {
     console.error(`TRENDING PRODUCTS REPORT ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: "TRENDING PRODUCTS REPORT ERROR [SERVER]",
       error: error.message,
     });
