@@ -39,7 +39,7 @@ const completedCheckoutSessionReportServer = async (req, res, next) => {
     const { startDate, endDate } = req.query;
 
     if (!startDate || !endDate) {
-      return res.status(400).send({ success: false, msg: "Start date and end date are required" });
+      return res.status(400).send({ msg: "Start date and end date are required" });
     }
 
     validateDateYearRange(startDate, endDate);
@@ -50,11 +50,11 @@ const completedCheckoutSessionReportServer = async (req, res, next) => {
     const completedSessions = await fetchAllCompletedSessions(startTimestamp, endTimestamp);
     const completedSessionsLength = completedSessions.length;
 
-    return res.status(200).send({ success: true, length: completedSessionsLength });
+    return res.status(200).send({ length: completedSessionsLength });
   } catch (error) {
     console.error(`COMPLETED CHECKOUT SESSION REPORT ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: "COMPLETED CHECKOUT SESSION REPORT ERROR [SERVER]",
       error: error.message,
     });

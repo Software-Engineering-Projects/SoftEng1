@@ -4,61 +4,59 @@ import { Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { app } from "./config/firebase.config.js";
 import { useDispatch, useSelector } from "react-redux";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { setUserDetails, setUserNull } from "./context/actions/userActions.js";
-import { GlobalAlert } from "./containers/components/main/GlobalAlert.jsx";
-import { Loader } from "./components/Loader.jsx";
+import { Loader } from "@/global-components/global-component-index.js";
 import AllRoutes from "./routes.jsx";
 import { setRoleType, setRoleNull } from "./context/actions/userRoleAction";
-// import { NotFoundPage } from "./components/NotFoundPage.jsx";
+import { getUserRole } from "./api/index.js";
 
 const App = () => {
-  // ADMIN ROLE 
-  const [role, setRole] = useState('admin');
-
-  const firebaseAuth = getAuth(app);
-  const [isLoading, setIsLoading] = React.useState(false);
-  // TODO: Remove abundant css classes from .js and .jsx files, components should be separate to make it easier to read and understand each components and to also allow for setting reusable components
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const firebaseAuth = getAuth();
+
+  const user = useSelector((state) => state.user);
   const alert = useSelector((state) => state.alert);
-  const roleType = useSelector((state) => state.roleType);
+  const [role, setRole] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    setIsLoading(true);
-    // Checking the global store for the user details, if none setting user details to null
-    const sessionExpire = firebaseAuth.onAuthStateChanged((user) => {
+    const fetchRole = async () => {
       if (user) {
-        dispatch(setUserDetails(user));
+        const fetchedRole = await getUserRole(user.uid);
+        console.log(user.uid);
+        setRole(fetchedRole);
+      }
+    };
+    fetchRole();
+  }, [user]);
+
+  // Handle user authentication state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (authUser) => {
+      if (authUser) {
+        dispatch(setUserDetails(authUser));
         dispatch(setRoleType(role));
       } else {
-        dispatch(setUserNull());
-        // dispatch(setRoleNull());
+        dispatch(setRoleNull());
+        // navigate('/login');
       }
-
       setIsLoading(false);
     });
 
-    return () => sessionExpire();
-  }, [dispatch, firebaseAuth, navigate]);
+    return () => unsubscribe();
+  }, [dispatch, firebaseAuth, navigate, role]);
 
-  // FIXME: Properly setup the 404 route since putting sub routes might mess with it
   return (
-    // To make the animations pause if the page is still loading but excluding the loader from the animation pause
-    // FIXME: The animation pause is not working properly, and pauses the topnavbar animation fully
     <div>
       {isLoading && <Loader />}
-      <div>
-        <Toaster />
-        <Routes>
-          {/* TODO: This is set to use a wildcard in order to make sub routes work but this makes the 404 page not work correctly */}
-          <Route path="/*" element={<AllRoutes />} />
-          {/* <Route path="*" element={<NotFoundPage />} /> */}
-        </Routes>
-        {!isLoading && alert?.type && (
-          <GlobalAlert type={alert.type} message={alert.type} />
-        )}
-      </div>
+      <Toaster />
+      <Routes>
+        <Route path="/*" element={<AllRoutes />} />
+      </Routes>
     </div>
   );
 };

@@ -3,12 +3,12 @@ const db = admin.firestore();
 const productsCollectionRef = db.collection("products");
 const { productSchema, updateProductSchema } = require("../models/productModel");
 const { productClickTrackerIncrement } = require("./reports/productReportController");
-
+const { createCombination } = require("../scripts/createProductIdentifier");
 // NOTE: All of these endpoints are working as expected, further test should still be made to ensure that the data is being stored and retrieved correctly.
 
 // NOTE: To get a sample response from these API endpoints refer to the readme in the route directory
 const productTestRouteServer = (_req, res, next) => {
-  res.status(200).send({ success: true, msg: "Inside Products Route" });
+  res.status(200).send({ msg: "Inside Products Route" });
 };
 
 // TODO: Add authentication middleware
@@ -18,21 +18,23 @@ const addNewProductServer = async (req, res, next) => {
 
     if (error) {
       console.error(`VALIDATION ERROR: ${error.message}`);
-      return res.status(400).send({ success: false, msg: `VALIDATION ERROR: ${error.message}` });
+      return res.status(400).send({ msg: `VALIDATION ERROR: ${error.message}` });
     } else {
       const product = {
         ...value,
       };
 
       productsCollectionRef.add(product).then((docRef) => {
-        return res.status(201).send({ success: true, msg: "Product created successfully", data: product, id: docRef.id });
+        console.log("Document written with ID: ", docRef.id);
+        createCombination(docRef.id);
+        return res.status(201).send({ msg: "Product created successfully", data: product, id: docRef.id });
       }).catch((error) => {
         console.error("Error adding document: ", error);
-        return res.status(400).send({ success: false, msg: `CREATE PRODUCT ERROR [SERVER] ${error.message}` });
+        return res.status(400).send({ msg: `CREATE PRODUCT ERROR [SERVER] ${error.message}` });
       });
     }
   } catch (error) {
-    return res.status(400).send({ success: false, msg: `CREATE PRODUCT ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `CREATE PRODUCT ERROR [SERVER] ${error.message}` });
   }
 };
 
@@ -52,10 +54,10 @@ const getAllProductsServer = async (_req, res, next) => {
         preparationTime,
       };
     });
-    res.status(200).send({ success: true, data: response });
+    res.status(200).send({ data: response });
   } catch (error) {
     console.error(`GET ALL PRODUCTS ERROR [SERVER] ${error.message}`);
-    return res.status(400).send({ success: false, msg: `GET ALL PRODUCTS ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `GET ALL PRODUCTS ERROR [SERVER] ${error.message}` });
   }
 };
 
@@ -63,12 +65,12 @@ const getProductByIdServer = async (req, res, next) => {
   try {
     const id = req.params.productId;
     if (!id || typeof id !== "string") {
-      return res.status(400).send({ success: false, msg: "Invalid ID parameter" });
+      return res.status(400).send({ msg: "Invalid ID parameter" });
     }
     const doc = await productsCollectionRef.doc(id).get();
 
     if (!doc.exists) {
-      return res.status(404).send({ success: false, msg: `PRODUCT NOT FOUND [SERVER]` });
+      return res.status(404).send({ msg: `PRODUCT NOT FOUND [SERVER]` });
     } else {
       const { productName, basePrice, sizes, addons, ingredients, description, category, imageUrl, isFeatured, isPublished, nutritionalInfo, preparationTime } = doc.data();
       const response = {
@@ -93,11 +95,11 @@ const getProductByIdServer = async (req, res, next) => {
         preparationTime,
       };
       await productClickTrackerIncrement(id);
-      return res.status(200).send({ success: true, data: response });
+      return res.status(200).send({ data: response });
     }
   } catch (error) {
     console.error(`GET PRODUCT BY ID ERROR [SERVER] ${error.message}`);
-    return res.status(400).send({ success: false, msg: `GET PRODUCT BY ID ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `GET PRODUCT BY ID ERROR [SERVER] ${error.message}` });
   }
 };
 
@@ -109,21 +111,21 @@ const updateProductByIdServer = async (req, res, next) => {
     const doc = await productsCollectionRef.doc(id).get();
     const { error, value } = updateProductSchema.validate(req.body);
     if (!doc.exists) {
-      return res.status(404).send({ success: false, msg: `PRODUCT NOT FOUND [SERVER]` });
+      return res.status(404).send({ msg: `PRODUCT NOT FOUND [SERVER]` });
     }
     if (error) {
       console.error(`VALIDATION ERROR: [UPDATE BY ID] ${error.message}`);
-      return res.status(400).send({ success: false, msg: `VALIDATION ERROR: ${error.message}` });
+      return res.status(400).send({ msg: `VALIDATION ERROR: ${error.message}` });
     } else {
       productsCollectionRef.doc(id).update(value).then(() => {
-        return res.status(201).send({ success: true, data: value });
+        return res.status(201).send({ data: value });
       }).catch((error) => {
         console.error("Error updating document: ", error);
-        return res.status(400).send({ success: false, msg: `UPDATE PRODUCT ERROR [SERVER] ${error.message}` });
+        return res.status(400).send({ msg: `UPDATE PRODUCT ERROR [SERVER] ${error.message}` });
       });
     }
   } catch (error) {
-    return res.status(400).send({ success: false, msg: `UPDATE PRODUCT ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `UPDATE PRODUCT ERROR [SERVER] ${error.message}` });
   }
 };
 
@@ -135,14 +137,14 @@ const deleteProductByIdServer = async (req, res, next) => {
     const doc = await productsCollectionRef.doc(id).get();
 
     if (!doc.exists) {
-      return res.status(404).send({ success: false, msg: `PRODUCT NOT FOUND [SERVER]` });
+      return res.status(404).send({ msg: `PRODUCT NOT FOUND [SERVER]` });
     } else {
       const response = await productsCollectionRef.doc(id).delete();
-      return res.status(200).send({ success: true, msg: `Product with ID:${id} deleted successfully`, data: response });
+      return res.status(200).send({ msg: `Product with ID:${id} deleted successfully`, data: response });
     }
   } catch (error) {
     console.log(`DELETE PRODUCT ERROR [SERVER] ${error.message}`);
-    return res.status(400).send({ success: false, msg: `DELETE PRODUCT ERROR [SERVER] ${error.message}` });
+    return res.status(400).send({ msg: `DELETE PRODUCT ERROR [SERVER] ${error.message}` });
   }
 };
 

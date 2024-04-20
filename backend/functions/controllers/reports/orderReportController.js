@@ -17,24 +17,24 @@ const orderStatusReportServer = async (req, res) => {
 
     if (!status) {
       return res.status(400).send({
-        success: false,
+
         msg: "Order status is required.",
       });
     }
     if (!orderStatusList.includes(status)) {
       return res.status(400).send({
-        success: false,
+
         msg: `Invalid order status: ${status}`,
       });
     }
     const orders = await fetchOrdersByStatus(status);
     const ordersLength = orders.length;
 
-    return res.status(200).send({ success: true, length: ordersLength, orderStatus: status });
+    return res.status(200).send({ length: ordersLength, orderStatus: status });
   } catch (error) {
     console.error(`ORDERS REPORT ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: "ORDERS REPORT ERROR [SERVER]",
     });
   }

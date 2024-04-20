@@ -9,7 +9,7 @@ const userCollectionRef = db.collection("users");
 // NOTE: To get a sample response from these API endpoints refer to the readme in the route directory
 
 const userTestProductServer = (_req, res, next) => {
-  res.status(200).send({ success: true, msg: "Inside user route" });
+  res.status(200).send({ msg: "Inside user route" });
 };
 
 const getUserCountServer = async (_req, res, next) => {
@@ -26,11 +26,11 @@ const getUserCountServer = async (_req, res, next) => {
     };
 
     const count = await listAllUsers();
-    return res.status(200).send({ success: true, count });
+    return res.status(200).send({ count });
   } catch (error) {
     console.log(`USER COUNT ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: `USER COUNT ERROR [SERVER]`,
       error: error.message,
     });
@@ -58,11 +58,11 @@ const getAllUsers = async (nextPageToken) => {
 const getUserListServer = async (_req, res, next) => {
   try {
     const data = await getAllUsers();
-    return res.status(200).send({ success: true, data });
+    return res.status(200).send({ data });
   } catch (error) {
     console.log(`USER LIST ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: `USER LIST ERROR [SERVER]`,
       error: error.message,
     });
@@ -74,16 +74,16 @@ const deleteUserByIdServer = async (req, res, next) => {
   try {
     const user = await admin.auth().getUser(id);
     if (!user) {
-      return res.status(404).send({ success: false, msg: "User not found" });
+      return res.status(404).send({ msg: "User not found" });
     }
 
     await admin.auth().deleteUser(id);
 
-    return res.status(200).send({ success: true, msg: "User deleted successfully" });
+    return res.status(200).send({ msg: "User deleted successfully" });
   } catch (error) {
     console.error(`DELETE USER BY ID ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: "DELETE USER BY ID ERROR [SERVER] ",
       error: error.message,
     });
@@ -95,13 +95,13 @@ const getUserByIdServer = async (req, res, next) => {
   try {
     const user = await admin.auth().getUser(id);
     if (!user) {
-      return res.status(404).send({ success: false, msg: "User not found" });
+      return res.status(404).send({ msg: "User not found" });
     }
-    return res.status(200).send({ success: true, data: user });
+    return res.status(200).send({ data: user });
   } catch (error) {
     console.log(`GET USER BY ID ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: `GET USER BY ID ERROR [SERVER]`,
       error: error.message,
     });
@@ -114,19 +114,19 @@ const setAdminRoleServer = async (req, res, next) => {
   // TODO: Try to make a more descriptive error message, for why a user is not eligible for the certain role
   try {
     if (adminId === undefined || adminId === null) {
-      return res.status(400).send({ success: false, msg: "Admin ID is required" });
+      return res.status(400).send({ msg: "Admin ID is required" });
     }
 
     const adminUser = await fetchRole(adminId);
     if (!adminUser || adminUser !== "admin") {
       console.error(`Admin not found with ID: ${adminId}`);
-      return res.status(404).send({ success: false, msg: `User with id: ${adminId} is not an admin and cannot assign admin role` });
+      return res.status(404).send({ msg: `User with id: ${adminId} is not an admin and cannot assign admin role` });
     }
 
     const user = await admin.auth().getUser(id);
     if (!user) {
       console.error(`User not found with ID: ${id}`);
-      return res.status(404).send({ success: false, msg: "User not found" });
+      return res.status(404).send({ msg: "User not found" });
     }
 
     if (
@@ -136,23 +136,23 @@ const setAdminRoleServer = async (req, res, next) => {
       user.disabled
     ) {
       console.error(`User with email: ${user.email} isn't eligible for an admin role`);
-      return res.status(400).send({ success: false, msg: `User with email: ${user.email} isn't eligible for an admin role` });
+      return res.status(400).send({ msg: `User with email: ${user.email} isn't eligible for an admin role` });
     }
 
     const userClaims = await fetchRole(id);
     if (userClaims && userClaims.admin) {
       console.error(`User is already an admin with ID: ${id}`);
-      return res.status(400).send({ success: false, msg: "User is already an admin" });
+      return res.status(400).send({ msg: "User is already an admin" });
     }
 
     await admin.auth().setCustomUserClaims(id, { admin: true });
 
     console.log(`User role updated successfully for ID: ${id}`);
-    return res.status(200).send({ success: true, msg: "User role updated successfully" });
+    return res.status(200).send({ msg: "User role updated successfully" });
   } catch (error) {
     console.error(`SET ADMIN ROLE ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: "SET ADMIN ROLE ERROR [SERVER]",
       error: error.message,
     });
@@ -165,19 +165,19 @@ const setUserRoleServer = async (req, res, next) => {
   const adminId = req.body.adminId;
   try {
     if (!adminId) {
-      return res.status(400).send({ success: false, msg: "Admin ID is required" });
+      return res.status(400).send({ msg: "Admin ID is required" });
     }
 
     const adminUser = await fetchRole(adminId);
     if (!adminUser || adminUser !== "admin") {
       console.error(`Admin not found with ID: ${adminId}`);
-      return res.status(404).send({ success: false, msg: `User with id: ${adminId} is not an admin and cannot assign admin role` });
+      return res.status(404).send({ msg: `User with id: ${adminId} is not an admin and cannot assign admin role` });
     }
 
     const user = await admin.auth().getUser(id);
     if (!user) {
       console.error(`User not found with ID: ${id}`);
-      return res.status(404).send({ success: false, msg: "User not found" });
+      return res.status(404).send({ msg: "User not found" });
     }
 
     if (
@@ -187,24 +187,24 @@ const setUserRoleServer = async (req, res, next) => {
     ) {
       console.error(`User with email: ${user.email} isn't eligible for a role type of user`);
       return res.status(400).send({
-        success: false, msg: "User isn't eligible for a role type of user",
+        msg: "User isn't eligible for a role type of user",
       });
     }
 
     const userClaims = await fetchRole(id);
     if (userClaims && userClaims === "user") {
       console.error(`User is already a role of type "user" with ID: ${id}`);
-      return res.status(400).send({ success: false, msg: "User is already a role of type user" });
+      return res.status(400).send({ msg: "User is already a role of type user" });
     }
 
     await admin.auth().setCustomUserClaims(id, { user: true });
 
     console.log(`Role of type "user" updated successfully for ID: ${id}`);
-    return res.status(200).send({ success: true, msg: "Role of type user updated successfully" });
+    return res.status(200).send({ msg: "Role of type user updated successfully" });
   } catch (error) {
     console.error(`SET ROLE OF TYPE USER ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: "SET ROLE OF TYPE USER ERROR [SERVER]",
       error: error.message,
     });
@@ -218,18 +218,18 @@ const getUserRoleServer = async (req, res, next) => {
     const user = await admin.auth().getUser(id);
 
     if (!user) {
-      return res.status(404).send({ success: false, msg: "User not found" });
+      return res.status(404).send({ msg: "User not found" });
     }
 
     if (!role) {
-      return res.status(404).send({ success: false, msg: "User has no assigned role" });
+      return res.status(404).send({ msg: "User has no assigned role" });
     }
 
-    return res.status(200).send({ success: true, role: role });
+    return res.status(200).send({ role: role });
   } catch (error) {
     console.log(`GET USER ROLE ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: `GET USER ROLE ERROR [SERVER]`,
       error: error.message,
     });
@@ -241,20 +241,20 @@ const getUserByEmailServer = async (req, res, next) => {
     const email = req.body.email;
 
     if (!email) {
-      return res.status(400).send({ success: false, msg: "Email is required" });
+      return res.status(400).send({ msg: "Email is required" });
     }
 
     const user = await admin.auth().getUserByEmail(email);
 
     if (!user) {
-      return res.status(404).send({ success: false, msg: "User not found" });
+      return res.status(404).send({ msg: "User not found" });
     }
 
-    return res.status(200).send({ success: true, data: user });
+    return res.status(200).send({ data: user });
   } catch (error) {
     console.log(`GET USER BY EMAIL ERROR [SERVER] ${error.message}`);
     return res.status(500).send({
-      success: false,
+
       msg: `GET USER BY EMAIL ERROR [SERVER]`,
       error: error.message,
     });
@@ -266,7 +266,7 @@ const registerUserServer = async (req, res) => {
 
   try {
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Email and password are required" });
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
     const hashedPassword = await hashPassword(password);
@@ -298,14 +298,14 @@ const registerUserServer = async (req, res) => {
     await saveUserDataToFirestore(userRecord.uid, email, hashedPassword, displayName);
 
     return res.status(201).json({
-      success: true,
+
       message: "User created successfully",
       data: [userRecord.toJSON()],
     });
   } catch (error) {
     console.error(`REGISTER USER ERROR [SERVER]`, error);
     return res.status(500).json({
-      success: false,
+
       message: `REGISTER USER ERROR [SERVER]`,
       error: error.message,
     });
@@ -323,13 +323,13 @@ const loginUserServer = async (req, res) => {
 
   try {
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Email and password are required" });
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
     const userSnapshot = await userCollectionRef.where("email", "==", email).get();
 
     if (userSnapshot.empty) {
-      return res.status(401).json({ success: false, message: "User not found" });
+      return res.status(401).json({ message: "User not found" });
     }
 
     const userDoc = userSnapshot.docs[0];
@@ -337,14 +337,14 @@ const loginUserServer = async (req, res) => {
     console.log(`User data fetched from Firestore for UID: ${uid}`);
 
     if (!uid || typeof uid !== "string") {
-      return res.status(500).json({ success: false, message: "Invalid user data" });
+      return res.status(500).json({ message: "Invalid user data" });
     }
 
     const { hashedPassword } = userDoc.data();
     const passwordMatch = await comparePassword(password, hashedPassword);
 
     if (!passwordMatch) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     await fetchRole(uid);
@@ -356,7 +356,7 @@ const loginUserServer = async (req, res) => {
     } catch (error) {
       console.error(`Error generating token`, error);
       return res.status(500).json({
-        success: false,
+
         message: `Error generating token`,
         error: error.message,
       });
@@ -367,17 +367,17 @@ const loginUserServer = async (req, res) => {
     } catch (error) {
       console.error(`Error creating session`, error);
       return res.status(500).json({
-        success: false,
+
         message: `Error creating session`,
         error: error.message,
       });
     }
 
-    return res.status(200).json({ success: true, message: "User logged in successfully", session: session });
+    return res.status(200).json({ message: "User logged in successfully", session: session });
   } catch (error) {
     console.error(`LOGIN USER ERROR [SERVER]`, error);
     return res.status(500).json({
-      success: false,
+
       message: `LOGIN USER ERROR [SERVER]`,
       error: error.message,
     });
@@ -388,21 +388,21 @@ const logOutUserServer = async (req, res) => {
   try {
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader) {
-      return res.status(401).json({ success: false, message: "Authorization header missing" });
+      return res.status(401).json({ message: "Authorization header missing" });
     }
 
     const token = authorizationHeader.split(" ")[1];
     if (!token) {
-      return res.status(401).json({ success: false, message: "Token missing" });
+      return res.status(401).json({ message: "Token missing" });
     }
 
     await verifyToken(token, res, req);
     await expireToken(token);
-    return res.status(200).json({ success: true, message: "User logged out successfully" });
+    return res.status(200).json({ message: "User logged out successfully" });
   } catch (error) {
     console.error(`LOGOUT USER ERROR [SERVER]`, error);
     return res.status(500).json({
-      success: false,
+
       message: `LOGOUT USER ERROR [SERVER]`,
       error: error.message,
     });

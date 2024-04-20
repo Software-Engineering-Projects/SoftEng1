@@ -1,45 +1,31 @@
-import axios from "axios";
+// NOTE: Here is where all the api endpoints will be exported so that they can be found in one place
 
-export const baseURL =
-  import.meta.env.VITE_BASE_URL;
+// User API Endpoints
 
-export const getUserCount = async () => {
-  try {
-    const res = await axios.get(`${baseURL}/api/users/count`);
-    return res.data.count;
-  } catch (err) {
-    return null;
-  }
-};
+export { getUserList, getUserCount, getUserRole, getUserById, deleteUserById } from "./user.js";
 
-export const getUserList = async () => {
-  try {
-    const res = await axios.get(`${baseURL}/api/users/list`);
-    return res.data.data;
-  } catch (err) {
-    return null;
-  }
-};
+// TODO: Product API Endpoints
+export { addNewProduct, getAllProducts } from "./product.js";
 
-export const addNewProduct = async (productData) => {
-  try {
-    const res = await axios.post(`${baseURL}/api/products/create`, productData);
-    return res.data.productId;
-  } catch (err) {
-    return null;
-  }
-}
+// NOTE: These are commented out because they are not yet implemented to avoid runtime error
+// // TODO: Order API Endpoints
+// export { addNewOrder, getAllOrders } from "./order.js";
 
-export const getAllProducts = async () => {
-  try {
-    const res = await axios.get(`${baseURL}/api/products/all`);
-    console.log(res.data.data);
-    return res.data.data;
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
-};
+// // TODO: Transaction API Endpoints
+// export { addNewTransaction, getAllTransactions } from "./transaction.js";
+
+// // TODO: Cart API Endpoints
+// export { addNewCart, getAllCarts } from "./cart.js";
+
+// // TODO: Checkout API Endpoints
+// export { addNewCheckout, getAllCheckouts } from "./checkout.js";
+
+// // TODO: Payment API Endpoints
+// export { addNewPayment, getAllPayments } from "./payment.js";
+
+// // TODO: Receipt API Endpoints
+// export { addNewReceipt, getAllReceipts } from "./receipt.js";
+
 
 
 
