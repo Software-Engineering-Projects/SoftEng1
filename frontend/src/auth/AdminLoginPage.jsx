@@ -12,11 +12,10 @@ import {
 import { NavLink } from 'react-router-dom';
 
 export const AdminLoginPage = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('example@example.com');
   const [password, setPassword] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const firebaseAuth = getAuth(app);
 
@@ -37,7 +36,7 @@ export const AdminLoginPage = () => {
   };
 
   return (
-    <div>
+    <div className='flex items-center justify-center'>
       <form onSubmit={handleLogin}>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
