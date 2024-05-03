@@ -115,3 +115,8 @@ export default function AllRoutes() {
   );
 }
 
+// import { AdminLoginPage } from './AdminLoginPage';
+
+// // ...
+
+// <Route path="/admin/login" element={<AdminLoginPage />} />
