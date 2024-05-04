@@ -12,6 +12,7 @@ import {
 } from "./pages/main/navbar/navbar-pages-index.js";
 
 import { LoginPage } from "./auth/auth-index.js";
+import { AdminLoginPage } from "./auth/auth-index.js";
 
 // User Profile Pages
 import {
@@ -46,7 +47,7 @@ import { MenuItemProductPage } from "./pages/main/navbar/navbar-pages-index.js";
 function MainPageRoutes() {
   return (
     <Routes>
-      {/* <Route path="/" element={<HomePage />} /> */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/login" element={<LoginPage />} />
     </Routes>
   );
@@ -115,3 +116,8 @@ export default function AllRoutes() {
   );
 }
 
+// import { AdminLoginPage } from './AdminLoginPage';
+
+// // ...
+
+// <Route path="/admin/login" element={<AdminLoginPage />} />
