@@ -8,7 +8,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Check diff for package.json in backend
       run: |
-        git diff --exit-code origin/main -- backend/functions/package.json
+        git diff --exit-code main -- backend/functions/package.json
     - name: Check diff for package.json in frontend
       run: |
-        git diff --exit-code origin/main -- frontend/package.json
+        git diff --exit-code main -- frontend/package.json
