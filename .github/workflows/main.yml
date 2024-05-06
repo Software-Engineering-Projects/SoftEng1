@@ -1,0 +1,14 @@
+name: Check Dependencies Diffs
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Check diff for package.json in backend
+      run: |
+        git diff --exit-code origin/main -- backend/functions/package.json
+    - name: Check diff for package.json in frontend
+      run: |
+        git diff --exit-code origin/main -- frontend/package.json
