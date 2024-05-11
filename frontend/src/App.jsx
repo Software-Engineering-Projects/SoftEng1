@@ -27,7 +27,6 @@ const App = () => {
 
   const firebaseAuth = getAuth();
 
-  // TODO: Change the role to the redux store action
   // TODO: Separate useEffect hooks into a different file
 
   const addLoading = () => {
