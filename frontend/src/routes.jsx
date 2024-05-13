@@ -44,6 +44,7 @@ import { MenuItemProductPage } from "./pages/main/navbar/navbar-pages-index.js";
 import { CheckoutSuccess } from "./pages/checkout/checkout-status/CheckoutSuccess.jsx";
 import { CheckoutCancel } from "./pages/checkout/checkout-status/CheckoutCancel.jsx";
 import { CashOnDelivery } from "./pages/checkout/checkout-type/CashOnDelivery.jsx";
+import { OrderTracker } from "./pages/checkout/checkout-status/OrderTracker.jsx";
 
 function MainPageRoutes() {
   return (
@@ -68,14 +69,15 @@ function MainPageTopNavbarRoutes() {
     <Routes>
       <Route path="/" element={<><TopNavbar /><Outlet /></>}>
         <Route index element={<HomePage />} />
-        <Route path="menu" element={<MenuPage />} />
-        <Route path="menu/:id" element={<MenuItemProductPage />} />
-        <Route path="checkout" element={<Checkout />} />
-        <Route path="checkout/success" element={<CheckoutSuccess />} />
-        <Route path="checkout/cancel" element={<CheckoutCancel />} />
+        <Route path="/menu" element={<MenuPage />} />
+        <Route path="/menu/:id" element={<MenuItemProductPage />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/checkout/success" element={<CheckoutSuccess />} />
+        <Route path="/checkout/cancel" element={<CheckoutCancel />} />
         <Route path="/checkout/cash-on-delivery" element={<CashOnDelivery />} />
-        <Route path="about-us" element={<AboutPage />} />
-        <Route path="contacts" element={<ContactsPage />} />
+        <Route path="/checkout/order-tracker" element={<OrderTracker />} />
+        <Route path="/about-us" element={<AboutPage />} />
+        <Route path="/contacts" element={<ContactsPage />} />
         {/* NOTE: User Profile Routes */}
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/orders" element={<Orders />} />
@@ -90,16 +92,16 @@ function AdminDashboardRoutes() {
   return (
     <Routes>
       <Route path="/dashboard" element={<><MainDashboard /></>}>
-        {/* <Route index element={<MainDashboard />} /> */}
-        <Route path="orders" element={<DashboardOrders />} />
-        <Route path="users" element={<DashboardUsers />} />
-        <Route path="products" element={<DashboardProducts />} />
-        <Route path="restaurants" element={<DashboardRestaurants />} />
-        <Route path="reports" element={<DashboardReports />} />
-        <Route path="settings" element={<DashboardSettings />} />
-        <Route path="products/add" element={<DashboardAddProducts />} />
-        <Route path="restaurants/add" element={<DashboardAddRestaurants />} />
-        <Route path="users/add" element={<DashboardAddUsers />} />
+        <Route path="/dashboard/orders" element={<DashboardOrders />} />
+        <Route path="/dashboard/users" element={<DashboardUsers />} />
+        <Route path="/dashboard/products" element={<DashboardProducts />} />
+        <Route path="/dashboard/restaurants" element={<DashboardRestaurants />} />
+        <Route path="/dashboard/reports" element={<DashboardReports />} />
+        <Route path="/dashboard/settings" element={<DashboardSettings />} />
+        <Route path="/dashboard/products/add" element={<DashboardAddProducts />} />
+        <Route path="/dashboard/restaurants/add" element={<DashboardAddRestaurants />} />
+        {/* NOTE: Add Forms from dashboard */}
+        <Route path="/dashboard/users/add" element={<DashboardAddUsers />} />
       </Route>
     </Routes>
   );
