@@ -35,13 +35,14 @@ import {
   DashboardAddProducts
 } from "./pages/dashboard/dashboard-pages-index.js";
 
-
 // Main Pages
 import { MainDashboard } from "./pages/dashboard/dashboard-pages-index.js";
 import { TopNavbar } from "@/global-components/main/navbar/TopNavbar.jsx";
 import { Footer } from "@/global-components/main/main-pages/Footer.jsx";
 import { MenuItemProductPage } from "./pages/main/navbar/navbar-pages-index.js";
-// import { Checkout } from "./containers/components/user-profile/user/pages/Checkout.jsx";
+import { CheckoutSuccess } from "./pages/checkout/checkout-status/CheckoutSuccess.jsx";
+import { CheckoutCancel } from "./pages/checkout/checkout-status/CheckoutCancel.jsx";
+import { CashOnDelivery } from "./pages/checkout/checkout-type/CashOnDelivery.jsx";
 
 function MainPageRoutes() {
   return (
@@ -51,14 +52,12 @@ function MainPageRoutes() {
     </Routes>
   );
 }
-
+// TODO: Later create this better
 function UserProfileRoutes() {
   return (
     <Routes>
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/profile/orders" element={<Orders />} />
-      <Route path="/profile/order-history" element={<OrderHistory />} />
-      <Route path="/profile/transactions" element={<Transactions />} />
+      {/* These should use dynamic routes based on the uid*/}
+
     </Routes>
   );
 }
@@ -71,8 +70,16 @@ function MainPageTopNavbarRoutes() {
         <Route path="menu" element={<MenuPage />} />
         <Route path="menu/:id" element={<MenuItemProductPage />} />
         <Route path="checkout" element={<Checkout />} />
-        <Route path="featured" element={<AboutPage />} />
+        <Route path="checkout/success" element={<CheckoutSuccess />} />
+        <Route path="checkout/cancel" element={<CheckoutCancel />} />
+        <Route path="/checkout/cash-on-delivery" element={<CashOnDelivery />} />
+        <Route path="about-us" element={<AboutPage />} />
         <Route path="contacts" element={<ContactsPage />} />
+        {/* NOTE: User Profile Routes */}
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/orders" element={<Orders />} />
+        <Route path="/profile/order-history" element={<OrderHistory />} />
+        <Route path="/profile/transactions" element={<Transactions />} />
       </Route>
     </Routes>
   );
@@ -114,4 +121,3 @@ export default function AllRoutes() {
     </>
   );
 }
-
