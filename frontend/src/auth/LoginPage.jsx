@@ -13,6 +13,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { NavLink } from 'react-router-dom';
+import { createCart } from '@/api/cart.js';
 
 export const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -83,7 +84,8 @@ export const LoginPage = () => {
           });
         });
       }, 2000);
-
+      // NOTE: Upon registering this will create a cart for the user
+      createCart(userDetails.uid);
       navigate('/login', { replace: true });
       toast.success('Account created successfully');
     } catch (error) {
@@ -102,7 +104,7 @@ export const LoginPage = () => {
     }
   };
 
-  // TODO: Add a redirect, checking what the previous path was then redirecting the user after succesful login
+  // TODO: Add a redirect, checking what the previous path was then redirecting the user after successful login
   const signInWithEmailPass = async () => {
     setEmail('');
     setLoginPassword('');
@@ -301,6 +303,7 @@ export const LoginPage = () => {
                         ❌Passwords do not match
                       </p>
                     )}
+                    {/* TODO: This can probably be set in another file to allow for better readability */}
                     {showRegisterPasswordRequirements && (
                       <>
                         <div className="space-y-2">
