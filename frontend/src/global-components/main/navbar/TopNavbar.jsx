@@ -132,7 +132,7 @@ export const TopNavbar = () => {
                   </li>
                   <li>
                     <NavLink
-                      to="/featured"
+                      to="/about-us"
                       className={({ isActive }) =>
                         isActive
                           ? "block font-bold text-red-500 hover:text-blue-700"
@@ -264,7 +264,7 @@ export const TopNavbar = () => {
                       </li>
                       <li>
                         <NavLink
-                          to="orders"
+                          to="profile/orders"
                           className="flex items-center px-4 py-2 text-sm font-medium text-black hover:bg-blue-400 dark:hover:bg-blue-700 dark:text-gray-200 dark:hover:text-white"
                         >
                           <TbPackage className="mr-2" />
@@ -273,7 +273,7 @@ export const TopNavbar = () => {
                       </li>
                       <li>
                         <NavLink
-                          to="order-history"
+                          to="profile/order-history"
                           className="flex items-center px-4 py-2 text-sm font-medium text-black hover:bg-blue-400 dark:hover:bg-red-700 dark:text-gray-200 dark:hover:text-white"
                         >
                           <TbHistory className="mr-2" />
