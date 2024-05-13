@@ -1,0 +1,17 @@
+name: Check Dependencies
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: 'main'
+    - name: Check package.json in backend
+      run: |
+        git diff --exit-code HEAD -- backend/functions/package.json
+    - name: Check package.json in frontend
+      run: |
+        git diff --exit-code HEAD -- frontend/package.json
