@@ -8,8 +8,6 @@ const cartTestRouteServer = (_req, res, next) => {
   return res.send("Inside the cart router");
 };
 
-// TODO: Store all these instances to Redux(if applicable)
-
 const calculateTotalPrice = (items) => {
   let totalPrice = 0;
   if (items.length === 0) {
@@ -25,8 +23,7 @@ const calculateTotalPrice = (items) => {
 };
 
 // REVIEW: This finally adds products with same id's and identifiers
-// NOTE: The product identifier still hasn't yet been assigned to this and must derived from the chosen options
-// FIXME: This doesn't account for multiple product options just the base price, for now...
+// TODO: Add the product name to the cart items
 const addToCartServer = async (req, res) => {
   const id = req.params.cartId;
   try {
@@ -45,6 +42,7 @@ const addToCartServer = async (req, res) => {
 
     const productIds = req.body.items.map((item) => item.productId);
     const productDocs = await Promise.all(productIds.map((productId) => productsCollectionRef.doc(productId).get()));
+
     const productExists = productDocs.every((doc) => doc.exists);
     if (!productExists) {
       return res.status(404).send({ msg: "PRODUCT DOES NOT EXIST [SERVER]" });
@@ -58,12 +56,40 @@ const addToCartServer = async (req, res) => {
       if (!productDoc) {
         throw new Error(`Product with ID ${item.productId} not found`);
       }
+
       const productData = productDoc.data();
+
+      // Verify that the addons or sizes exists for that product
+      const productSize = productData.sizes.find((size) => size.name === item.productSize);
+      if (!productSize) {
+        throw new Error(`Size ${item.productSize} not found for product ${item.productId}`);
+      }
+
+      let productAddons = item.productAddons.map((addonName) => {
+        const addon = productData.addons.find((addon) => addon.name === addonName);
+        if (!addon) {
+          throw new Error(`Addon ${addonName} not found for product ${item.productId}`);
+        }
+        return addon;
+      });
+
+      // Parse the product options and assign the product identifier
+      // Sort addons by name before creating the product identifier
+      const sortedAddonNames = productAddons.map((addon) => addon.name).sort();
+      const productIdentifier = `${item.productId}-${productSize.name}-${sortedAddonNames.join("-")}`;
+
+      // The total price will be calculated based on the product identifier and the base price of the product
+      const productPrice = productData.basePrice + productSize.price + productAddons.reduce((total, addon) => total + addon.price, 0);
+
+
       return {
         productId: item.productId,
-        productIdentifier: item.productIdentifier,
+        productSize: productSize.name,
+        productAddons: productAddons.map((addon) => addon.name),
+        productIdentifier: productIdentifier,
         productQuantity: item.productQuantity,
-        productPrice: productData.basePrice, // Taken from firestore not assigned by the user in the req.body.items
+        productPrice: productPrice,
+        // updatedAt: Date.now(),
       };
     });
 
@@ -140,7 +166,6 @@ const updateCartItemQuantityServer = async (req, res, next) => {
       return res.status(400).send({ msg: "Invalid product quantity" });
     }
 
-    // Check if the product exists and if not automatically remove from cart
     const productDoc = await productsCollectionRef.doc(productId).get();
     if (!productDoc.exists) {
       await cartCollectionRef.doc(cartId).update({
@@ -173,22 +198,23 @@ const updateCartItemQuantityServer = async (req, res, next) => {
 };
 
 // TODO: Add middleware to check for the owner of the cart or admin, if not the user cannot view that cart
+// NOTE: There is already a helper function check for the cart owner
+// TODO: Will just change so this can just fetch using the user id
 const getUserCartServer = async (req, res, next) => {
-  const id = req.params.cartId;
+  const userId = req.params.userId;
   try {
-    if (!id || typeof id !== "string") {
+    if (!userId || typeof userId !== "string") {
       return res.status(400).send({ msg: "Invalid ID parameter" });
     }
 
-    const doc = await cartCollectionRef.doc(id).get();
-    if (!doc.exists) {
+    const userCartRef = await cartCollectionRef.where("userId", "==", userId).limit(1).get();
+    if (userCartRef.empty) {
       return res.status(404).send({ msg: "CART NOT FOUND [SERVER]" });
     }
 
-    const { userId, items } = doc.data();
-    if (!userId || typeof userId !== "string") {
-      return res.status(400).send({ msg: "Invalid user ID in cart data" });
-    }
+    const doc = userCartRef.docs[0];
+    const { items } = doc.data();
+
     if (!Array.isArray(items)) {
       return res.status(400).send({ msg: "Invalid items array in cart data" });
     }
@@ -209,6 +235,7 @@ const getUserCartServer = async (req, res, next) => {
 
     const response = {
       ...value,
+      length: items.length || 0,
     };
 
     return res.status(200).send({ data: response });
@@ -217,6 +244,7 @@ const getUserCartServer = async (req, res, next) => {
     return res.status(500).send({ msg: `Internal server error` });
   }
 };
+
 
 // REVIEW:
 // NOTE: This can actually just be a helper function, or webhook and can be invoked upon creation of an account, but for now just leave it here
@@ -260,8 +288,6 @@ const createCartServer = async (req, res, next) => {
   }
 };
 
-// TODO:
-// REVIEW:
 const deleteCartItemServer = async (req, res, next) => {
   const cartId = req.params.cartId;
   const productId = req.params.productId;
@@ -323,26 +349,33 @@ const deleteCartItemServer = async (req, res, next) => {
 };
 
 // TODO: Upon checkout, the cart items will be cleared
-const clearCartItems = async (cartId) => {
-  const cartDoc = await cartCollectionRef.doc(cartId).get();
-  if (!cartDoc.exists) {
-    return false;
+// TODO: This can be assigned to alongside the redux action to clear the cart items
+const clearCartItems = async (req, res, next) => {
+  const cartId = req.params.cartId;
+  try {
+    const cartDoc = await cartCollectionRef.doc(cartId).get();
+    if (!cartDoc.exists) {
+      return res.status(404).send({ msg: "Cart not found" });
+    }
+
+    const updatedCartDoc = await cartCollectionRef.doc(cartId).update({ items: [] });
+    if (!updatedCartDoc) {
+      return res.status(500).send({ msg: "Failed to clear cart items" });
+    }
+
+    const updatedCartItems = await cartCollectionRef.doc(cartId).get();
+    const totalPrice = calculateTotalPrice(updatedCartItems.data().items);
+
+    const updateTotalPrice = await cartCollectionRef.doc(cartId).update({ totalPrice });
+    if (!updateTotalPrice) {
+      return res.status(500).send({ msg: "Failed to update total price" });
+    }
+
+    return res.status(200).send({ msg: "Cart items cleared", totalPrice });
+  } catch (error) {
+    console.error(`CLEAR CART ITEMS ERROR [SERVER] ${error.message}`);
+    return res.status(500).send({ msg: `CLEAR CART ITEMS ERROR [SERVER] ${error.message}` });
   }
-
-  const updatedCartDoc = await cartCollectionRef.doc(cartId).update({ items: [] });
-  if (!updatedCartDoc) {
-    return false;
-  }
-
-  const updatedCartItems = await cartCollectionRef.doc(cartId).get();
-  const totalPrice = calculateTotalPrice(updatedCartItems.data().items);
-
-  const updateTotalPrice = await cartCollectionRef.doc(cartId).update({ totalPrice });
-  if (!updateTotalPrice) {
-    return false;
-  }
-
-  return true;
 };
 
 module.exports = {
