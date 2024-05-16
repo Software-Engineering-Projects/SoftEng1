@@ -1,8 +1,8 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
 const orderCollectionRef = db.collection("orders");
-const { orderSchema } = require("../models/orderModel");
-
+const { stripeOrderSchema, cashOnDeliverySchema } = require("../models/orderModel");
+const isCartOwner = require("../helpers/checkCartOwner");
 // TODO: Add Joi for validation
 
 const orderTestRouteServer = (_req, res, next) => {
@@ -24,23 +24,42 @@ const getAllOrdersServer = async (_req, res, next) => {
   }
 };
 
-// TODO:
+// TODO: Add validation for this
 const createOrderServer = async (req, res) => {
-  const userId = req.params.userId;
+  const { userId, cartId, paymentChannel } = req.body;
+
+  const handleOrderCreation = async (schema) => {
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+      throw new Error(`Validation Error: ${error.message}`);
+    }
+    const data = JSON.parse(JSON.stringify(value));
+
+    const ownsCart = await isCartOwner(cartId, userId);
+    if (!ownsCart) {
+      throw new Error("Unauthorized");
+    }
+
+    const newOrderRef = await orderCollectionRef.add(data);
+    const orderId = newOrderRef.id;
+
+    const newOrderSnapshot = await newOrderRef.get();
+    const orderData = newOrderSnapshot.data();
+
+    return { ...orderData, orderId };
+  };
 
   try {
-    const { id, cartId } = req.body;
-
-    const newOrder = await orderCollectionRef.add({
-      id,
-      cartId,
-      userId,
-      status: "pending",
-    });
-
-    return res.status(200).send({ data: newOrder });
+    let responseData;
+    if (paymentChannel === "stripe") {
+      responseData = await handleOrderCreation(stripeOrderSchema);
+    } else {
+      responseData = await handleOrderCreation(cashOnDeliverySchema);
+    }
+    return res.status(201).send({ data: responseData });
   } catch (error) {
-    return res.status(400).send({ msg: `CREATE ORDER ERROR [SERVER] ${error.message}` });
+    const statusCode = error.message === "Unauthorized" ? 403 : 400;
+    return res.status(statusCode).send({ msg: `CREATE ORDER ERROR [SERVER]: ${error.message}` });
   }
 };
 
@@ -83,6 +102,7 @@ const updateOrderStatusServer = async (req, res, next) => {
     return res.status(400).send({ msg: `UPDATE ORDER STATUS ERROR [SERVER] ${error.message}` });
   }
 };
+
 // NOTE: Now fetches all the orders of a given user not just a single order as that is already given by the getOrderById
 const viewCustomerOrders = async (req, res, next) => {
   const userId = req.params.userId;
