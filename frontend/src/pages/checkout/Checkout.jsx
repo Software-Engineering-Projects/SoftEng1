@@ -1,6 +1,3 @@
-// import { RadioGroupItem, RadioGroup } from "@/components/ui/radio-group"
-// import { label } from "@/components/ui/label"
-// import { input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useSelector, useDispatch } from "react-redux"
 import { Radio } from 'flowbite-react';
@@ -8,36 +5,76 @@ import { BsCashStack, BsPaypal } from "react-icons/bs";
 import { useEffect, useState } from "react";
 import { GrStripe } from "react-icons/gr";
 import { set, useForm } from "react-hook-form";
-import { useLocation, useNavigate } from "react-router-dom";
-import { createOrder } from "../../api/order";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { createOrder } from "@/api/order";
 import { useRef } from 'react';
 import { toast } from "react-hot-toast";
-
+import { MiniLoader } from '@/global-components/global-component-index.js';
+import { clearCartItems } from "@/api/cart";
+import { createStripeCheckoutSession } from "@/api/checkout";
 // FIXME: Since the state of this isn't intialized here it throws and error if you reload within this page with visiting the root
 export const Checkout = () => {
   const navigate = useNavigate();
-
-  const cartItems = useSelector((state) => state.cart.items);
+  // FIXME:
+  const cartItems = useSelector((state) => state.cart.items.items);
+  const cart = useSelector((state) => state.cart.items);
   const user = useSelector((state) => state.user);
 
   const [selectedPayment, setSelectedPayment] = useState('');
   const [orderButtonLoading, setOrderButtonLoading] = useState(false);
   const [orderDataList, setOrderDataList] = useState({});
-  const [cartTotalPrice, setCartTotalPrice] = useState(0);
-  const [cartGrandTotal, setCartGrandTotal] = useState(0);
   const [paymentError, setPaymentError] = useState('');
 
-  const cartId = cartItems.cartId;
+  const cartId = cart.cartId;
   const userId = user.uid;
   const customerName = user.displayName;
   const customerEmail = user.email;
 
-  const cartLength = cartItems.items.length;
+  const cartLength = cart.length;
   const shippingFee = cartLength * 0.25;
-  const subtotal = cartItems.totalPrice
+  const subtotal = cart.totalPrice;
   const totalPrice = subtotal + shippingFee;
 
   const paymentMethodRef = useRef(null);
+
+  // TODO: Add validation for the fields
+
+  // TODO: Add validation, if no payment method is selected, show an error message, if no contact information is provided, show an error message, if no shipping information is provided, show an error message
+  // TODO: Save this to the database after with the default
+
+  // FIXME: Also fetch the cart items and set as the line items in the orderDataList object
+  // TODO: Setup the shippingAddress and make sure the user object already has this information inputted in the database
+  // TODO: Make sure to properly assign the line items which are based on the cart items
+  const lineItems = cartItems.map(item => ({
+    productId: item.productId,
+    productIdentifier: item.productIdentifier,
+    productQuantity: item.productQuantity,
+    productPrice: item.productPrice,
+    productName: item.productName,
+  }));
+
+  useEffect(() => {
+    const orderData = {
+      userId: userId,
+      cartId: cartId,
+      paymentChannel: selectedPayment,
+      customerName: customerName,
+      customerEmail: customerEmail,
+      totalPrice: totalPrice,
+      // TODO: Properly destructure the lineItems from the cart items from redux
+      // TODO: This will be hardcoded for now, but it isn't actually required for the validation, im planning to create a gate, to not allow users to order until they've set an address and necessary information
+      shippingAddress: {
+        country: "Philippines",
+        city: "Metro Manila",
+        state: "NCR",
+        postalCode: "1000",
+        line1: "1234 Street",
+        line2: "Unit 101",
+      },
+      lineItems: lineItems
+    };
+    setOrderDataList(orderData);
+  }, [userId, cartId, selectedPayment, customerName, customerEmail, totalPrice]);
 
   const validatePaymentSelection = () => {
     if (!selectedPayment) {
@@ -48,63 +85,63 @@ export const Checkout = () => {
     setPaymentError('');
     return true;
   };
-  // TODO: Add validation for the fields
-
-  // TODO: Add validation, if no payment method is selected, show an error message, if no contact information is provided, show an error message, if no shipping information is provided, show an error message
-  // TODO: Save this to the database after with the default
-
-  // FIXME: userId is required????, its in the orderDataList object though
-  // FIXME: Properly handle the validation error from the createOrder api action
-  // FIXME: Also fetch the cart items and set as the line items in the orderDataList object
-  // TODO: Setup the shippingAddress and make sure the user object already has this information inputted in the database
-  useEffect(() => {
-    const orderData = {
-      userId: userId,
-      cartId: cartId,
-      paymentChannel: selectedPayment,
-      // orderDate: new Date().toISOString(),
-      customerName: customerName,
-      customerEmail: customerEmail,
-      // status: 'pending',
-      totalPrice: totalPrice,
-    };
-    setOrderDataList(orderData);
-  }, [userId, cartId, selectedPayment, customerName, customerEmail, totalPrice]);
-  console.log("Order Data", orderDataList)
 
   const onClickHandler = () => {
     const isValid = validatePaymentSelection();
     if (isValid) {
-      paymentCheckoutPage(selectedPayment);
+      setOrderButtonLoading(true);
+      paymentCheckoutPage(selectedPayment)
+        .catch((error) => {
+          console.error('Payment checkout failed:', error);
+        }).finally(() => {
+          setOrderButtonLoading(false);
+        })
     }
-  }
+  };
 
   // TODO: Add Joi to validate the order data but it should also be based on whether or not the payment method is stripe or cash
-  const paymentCheckoutPage = async (selectedPayment) => {
-    try {
-      if (selectedPayment === 'stripe') {
-        console.log("Redirect to Stripe [PAYMENT CHECKOUT PAGE]");
-        // Spread the orderDataList object into the createOrder call
-        await createOrder({ orderDataList });
-      } else if (selectedPayment === 'cash') {
-        console.log(orderDataList);
-        try {
-          await createOrder({ orderDataList });
-          navigate('/checkout/cash-on-delivery', { replace: true });
-        } catch (error) {
-          console.error("An error occurred during payment checkout:", error);
-        }
-        console.log("Make sure to have cash ready [PAYMENT CHECKOUT PAGE]");
-      }
-    } catch (error) {
-      console.error("An error occurred during payment checkout:", error);
-      if (selectedPayment === 'stripe') {
-        console.error("Stripe payment error:", error);
-        toast.error("An error occurred during stripe checkout")
-      } else if (selectedPayment === 'cash') {
-        console.error("Cash payment error:", error);
-        toast.error("An error occurred during cash checkout")
-      }
+  // FIXME: The url isn't being returned correctly for some reason.. even the api call is correct, i just forgot to import axios... tf
+  // FIXME: If an error happens during stripe properly reset the loading button state
+  const paymentCheckoutPage = (selectedPayment) => {
+    setOrderButtonLoading(true);
+
+    if (selectedPayment === 'stripe') {
+      console.log("Redirect to Stripe [PAYMENT CHECKOUT PAGE]");
+      createStripeCheckoutSession(cartId, userId)
+        .then((url) => {
+          if (url) {
+            // todo: only clear when the payment is successful
+            // clearCartItems(cartId);
+            createOrder(orderDataList);
+            window.location.href = url;
+          } else {
+            throw new Error("Failed to create Stripe checkout session");
+          }
+        })
+        .catch((error) => {
+          console.error("An error occurred during Stripe checkout:", error);
+          toast.error(error.message);
+        })
+        .finally(() => {
+          setOrderButtonLoading(false);
+        });
+    } else if (selectedPayment === 'cash') {
+      createOrder(orderDataList)
+        .then((result) => {
+          if (result) {
+            clearCartItems(cartId);
+            navigate('/checkout/success', { replace: true });
+          } else {
+            throw new Error("Failed to create order");
+          }
+        })
+        .catch((error) => {
+          console.error("An error occurred during cash payment processing:", error);
+          toast.error(error.message);
+        })
+        .finally(() => {
+          setOrderButtonLoading(false);
+        });
     }
   };
 
@@ -145,16 +182,15 @@ export const Checkout = () => {
                 </div>
                 {paymentError && <p className="text-red-500 text-md font-bold mt-2">{paymentError}</p>}
               </div>
-
             </div>
-            <div className="w-full lg:w-1/2 px-4">
+            <div className="w-full lg:w-1/2 px-4 shadow-lg">
               <div className="bg-white shadow rounded-lg p-6">
                 <h2 className="text-2xl font-semibold mb-4 text-gray-800">
                   Order Summary
                 </h2>
                 <div className="overflow-y-auto h-96">
                   <ul className="space-y-4">
-                    {cartItems.items.map((product) => (
+                    {cartItems.map((product) => (
                       <li key={product.productId} className="flex items-center space-x-4">
                         <div className="flex-shrink-0 w-20 h-20 overflow-hidden rounded-md border border-gray-300">
                           <img
@@ -165,9 +201,9 @@ export const Checkout = () => {
                         </div>
                         <div className="flex-grow">
                           <p className="text-lg font-semibold text-gray-900">
-                            <a href={product.href} className="hover:underline">
+                            <NavLink href={product.href} className="hover:underline">
                               {product.name}
-                            </a>
+                            </NavLink>
                           </p>
                           <div className="flex flex-row justify-between items-center gap-6 p-6 bg-white">
                             <div className="flex flex-col justify-center items-start">
@@ -192,7 +228,7 @@ export const Checkout = () => {
                     ))}
                   </ul>
                 </div>
-                <div className="mt-1">
+                <div className="mt-1 pb-2 border-b-4 border-red-500">
                   <div className="flex justify-between text-v text-gray-700">
                     <span>Item Count:</span>
                     <span>{cartLength}</span>
@@ -293,8 +329,14 @@ export const Checkout = () => {
         </div>
       </div>
       <div className="flex flex-col items-center justify-center">
-        <button onClick={onClickHandler} className="mt-4 mb-8 w-1/4 rounded-md bg-red-600 hover:bg-red-900/75 px-6 py-3 font-medium text-white">
-          Place Order
+        <button onClick={onClickHandler} className={`mt-4 mb-8 w-1/4 rounded-md bg-red-600 hover:bg-red-900/75 px-6 py-3 font-medium text-white ${orderButtonLoading ? 'cursor-not-allowed' : ''}`}
+          disabled={orderButtonLoading}
+        >
+          {orderButtonLoading ? (
+            <MiniLoader message="Placing Order" className="text-black" />
+          ) : (
+            "Place Order"
+          )}
         </button>
       </div>
     </>
