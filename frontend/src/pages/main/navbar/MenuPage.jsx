@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from 'flowbite-react';
 import { Clock, DollarSign, Eye, EyeOffIcon, Filter, Heart, Info, InfoIcon } from 'lucide-react';
 import { MenuItemFilters } from '@/global-components/main/main-pages/main-pages-component-index.js';
@@ -10,18 +10,16 @@ import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { MenuItemProductPage } from './MenuItemProductPage';
 import toast from "react-hot-toast";
+import { getAllProducts } from '@/api';
+import { useDispatch, useSelector } from 'react-redux';
+import { getProducts } from '@/context/actions/productAction';
+import { storage } from '@/config/firebase.config.js';
 
-const menuItems = productsMockData.map(product => ({
-  id: product.id,
-  imageSrc: product.productImage,
-  itemName: product.productName,
-  basePrice: product.basePrice,
-  sizes: product.sizes,
-  addOns: product.addons,
-  ingredients: product.ingredients,
-  description: product.description,
-}));
 
+// TODO: Make this use redux
+// TODO: Properly fetch image
+// TODO: Add conditional to check whether or not the menu item is published only then display the item, in admin view display all items, and have a badge to show if the item is published or not
+// TODO: Fetch from firebase storage
 const renderImages = (imageSrc, itemName) => {
   if (Array.isArray(imageSrc)) {
     return imageSrc.map((src, index) => (
@@ -56,21 +54,21 @@ const renderImages = (imageSrc, itemName) => {
 };
 
 const MenuItem = ({ id, imageSrc, itemName, basePrice, ingredients, description }) => {
-  const maxLength = 65;
+  const maxCharacterLength = 65;
   const truncateDescription = (description) => {
-    if (description.length > maxLength) {
-      return `${description.substring(0, maxLength)}...`;
+    if (description.length > maxCharacterLength) {
+      return `${description.substring(0, maxCharacterLength)}...`;
     }
     return description;
   };
 
   // TODO: Add to favorites
-  // TODO: Check preparation time
   const handleAddFavorite = () => {
     toast.success("Added to favorites")
     console.log('Added to favorites');
   };
 
+  // TODO: Check preparation time
   const handleCheckPreparationTime = () => {
     toast.success("15 Mins")
     console.log('Check preparation time');
@@ -80,7 +78,6 @@ const MenuItem = ({ id, imageSrc, itemName, basePrice, ingredients, description 
     <Link to={`/menu/${id}`}>
       <div className="relative overflow-hidden shadow-lg rounded-lg h-96 w-80 mx-auto cursor-pointer transition-transform duration-300 transform hover:scale-105">
         {renderImages(imageSrc, itemName)}
-
         <button onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -119,11 +116,29 @@ const MenuItem = ({ id, imageSrc, itemName, basePrice, ingredients, description 
 };
 
 export const MenuPage = () => {
+  // TODO: Set this up to work for redux
+  // TODO: Make object naming more consistent
+  const productsList = useSelector((state) => state.product)
+
+  const menuItems = productsList.products.map(product => ({
+    id: product.productId,
+    imageSrc: product.productImage,
+    itemName: product.productName,
+    basePrice: product.basePrice,
+    sizes: product.sizes,
+    addOns: product.addons,
+    ingredients: product.ingredients,
+    description: product.description,
+  }));
+
   return (
     <div className="bg-gray-100 dark:bg-gray-800">
       <section className="container mx-auto py-10 px-6">
-        <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-8">Menu</h2>
+        <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-8">
+          Menu
+        </h2>
 
+        {/* FIXME: Sometimes this doesn't render properly */}
         <div className='flex items-center mb-8'>
           <MenuItemFilters />
         </div>

@@ -1,15 +1,15 @@
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { productsMockData } from '../../../mock/productsMockData.js';
 import { Label, Modal, Select } from 'flowbite-react';
 import { Dessert, Eye, Heart, Minus, Plus, Search, SearchX, Star } from 'lucide-react';
 import { IoMdStar } from "react-icons/io";
 import { GiWrappedSweet } from "react-icons/gi";
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart } from '../../../context/actions/cartAction';
+import { addToCart } from '@/context/actions/cartAction';
+import { addToCartApi } from '@/api/cart';
 import toast, { Toaster } from 'react-hot-toast';
-
+import { MiniLoader } from '@/global-components/global-component-index.js';
 import {
   Card,
   CardHeader,
@@ -64,45 +64,24 @@ const AnimatedNumber = ({ value, commas }) => {
     </span>
   );
 };
-
+// FIXME: Ensure the global store is initialized before accessing as it may cause undefined values
+// TODO: Set add cart item to the global store
 export const MenuItemProductPage = () => {
-  const user = useSelector((state) => state.user);
-
-  const dispatch = useDispatch();
-  const { id } = useParams();
-  const searchedItem = productsMockData.find(item => item.id === parseInt(id, 10));
-  const cartItems = useSelector((state) => state.cart.items);
-  // TODO: Add better styling to this page
-  if (!searchedItem) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen pb-60">
-        <div className='text-3xl font-semibold flex items-center '>
-          <SearchX className='w-10 h-10 mx-5' /> Product not found.
-        </div>
-      </div>
-    )
-  }
-
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedAddOn, setSelectedAddOn] = useState('');
-  const [totalPrice, setTotalPrice] = useState(calculateTotalPrice());
   const [productIdentifier, setProductIdentifier] = useState('');
-  console.log("productIdentifier:", productIdentifier)
-  useEffect(() => {
-    setTotalPrice(calculateTotalPrice());
-  }, [selectedSize, selectedAddOn, searchedItem]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function calculateTotalPrice() {
-    const selectedSizePrice = selectedSize ? searchedItem.sizes.find((size) => size.name === selectedSize)?.price || 0 : 0;
-    const selectedAddOnPrice = selectedAddOn
-      ? searchedItem.addons.find((addon) => addon.name === selectedAddOn)?.price || 0
-      : 0;
+  const user = useSelector((state) => state.user);
+  const productsList = useSelector((state) => state.product);
+  const cartId = useSelector(state => state.cart.items.cartId);
 
-    const rawTotal = (searchedItem.basePrice + selectedSizePrice + selectedAddOnPrice);
-
-    return isNaN(rawTotal) ? 0 : rawTotal;
-  }
+  // FIXME: Sometimes this shit is undefined because of the redux state, properly configure the global store later
+  // TODO: Save the item added to the cart to the global store
+  const dispatch = useDispatch();
+  const { id } = useParams();
+  const searchedItem = productsList.products.find((product) => product.productId === id);
 
   const incrementQuantity = () => {
     setQuantity((prevQuantity) => prevQuantity + 1);
@@ -123,86 +102,110 @@ export const MenuItemProductPage = () => {
   };
 
   const updateProductIdentifier = (size, addon) => {
-    const updatedProductIdentifier = `${searchedItem.id}_${size || 'no_size'}_${addon || 'no_addon'}`;
+    const updatedProductIdentifier = `${searchedItem.productId}-${size}-${addon}`;
     setProductIdentifier(updatedProductIdentifier);
   };
 
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const handleAddCartItem = () => {
-    // TODO: Add better validation,
-    if (!user) {
-      alert('Please login to add items to your cart.');
-      return;
-    }
+  const handleAddCartItem = async () => {
+    setIsSubmitting(true);
+    try {
+      // TODO: Add better validation,
 
+      // TODO: Add better validation,
+      if (!user) {
+        alert('Please login to add items to your cart.');
+        setIsSubmitting(false);
+        return;
+      }
 
-    if (!selectedSize) {
-      alert('Please select a size.');
-      return;
-    }
-    // if (!selectedAddOn) {
+      if (!selectedSize) {
+        alert('Please select a size.');
+        setIsSubmitting(false);
+        return;
+      }
+      if (!selectedAddOn) {
+        alert('Please select an addon.');
+        setIsSubmitting(false);
+        return;
+      }
 
-    //   return
-    // }
+      const productToAdd = {
+        productId: searchedItem.productId,
+        productQuantity: quantity,
+        productAddons: [selectedAddOn],
+        productSize: selectedSize
+      };
 
-    const options = {
-      size: selectedSize,
-      addons: selectedAddOn,
-      totalPrice: totalPrice,
-    };
+      await addToCartApi(cartId, [productToAdd]);
+      // REVIEW: This work fine, just need to adjust redux to reflect it to the UI,
+      // FIXME: I need to fix the way redux is adding the items, to update the UI correctly, for a first item it correctly adds it with no problem however, the second item is not added correctly, it is added as an array of items instead of a single item, i presume, ill look into it
+      dispatch(addToCart(productToAdd));
+      setIsSubmitting(false);
 
-    const productToAdd = {
-      id: searchedItem.id,
-      name: searchedItem.productName,
-      image: searchedItem.productImage,
-      quantity,
-      options,
-      productIdentifier,
-    };
+      toast.custom((t) => (
+        <div
+          className={`${t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+        >
 
-    toast.custom((t) => (
-      <div
-        className={`${t.visible ? 'animate-enter' : 'animate-leave'
-          } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
-      >
-
-        <div className="flex-1 w-0 p-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0 pt-0.5">
-
-              <img
-                className="h-10 w-10 rounded-full object-cover"
-                src={searchedItem.productImage}
-                alt={searchedItem.productName}
-              />
-
-            </div>
-            <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-900">
-                Added {searchedItem.productName} to your cart.
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                {quantity} x {selectedSize} {searchedItem.productName}  {selectedAddOn}
-              </p>
+          <div className="flex-1 w-0 p-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0 pt-0.5">
+                <img
+                  className="h-10 w-10 rounded-full object-cover"
+                  src={searchedItem.productImage}
+                  alt={searchedItem.productName}
+                />
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  Added {searchedItem.productName} to your cart.
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {quantity} x {selectedSize} {searchedItem.productName} with {selectedAddOn}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    ))
-
-    dispatch(addToCart(productToAdd));
-
-    // TODO: 
-    // setSelectedSize('');
-    // setSelectedAddOn('');
-    setQuantity(1);
+      ))
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+      toast.error("Error adding item to cart");
+    } finally {
+      setIsSubmitting(false);
+      setQuantity(1);
+    }
   };
 
   const handleCloseLoginModal = () => {
     // close the modal
     setShowLoginModal(false);
   };
+
+  // TODO: Add better styling to this page
+  if (!searchedItem) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[90vh]">
+        <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-sm mx-auto border-b-2">
+          <div className="flex flex-col items-center">
+            <SearchX className="w-16 h-16 text-gray-500 mb-4" />
+            <h1 className="text-2xl font-semibold text-gray-800 mb-2">
+              Product Not Found
+            </h1>
+            <p className="text-gray-600 mb-6 text-center">
+              We couldn't find the product you were looking for.
+            </p>
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
+              Browse Products
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto pt-12 flex items-center justify-center">
@@ -213,12 +216,12 @@ export const MenuItemProductPage = () => {
           <div className="relative rounded-lg overflow-hidden">
             <div className="flex items-center justify-center">
               <img
-                src={searchedItem.productImage}
-                alt={searchedItem.productName}
+                src={productsList.products.imageUrl}
+                alt={productsList.products.productName}
                 className="max-h-[28rem] object-cover rounded-lg w-full"
               />
             </div>
-            <span className='flex flex-col items-center justify-center font-bold text-2xl pt-4'>{searchedItem.productName}</span>
+            <span className='flex flex-col items-center justify-center font-bold text-2xl pt-4'>{productsList.products.productName}</span>
           </div>
 
           {/* Card Body */}
@@ -229,7 +232,7 @@ export const MenuItemProductPage = () => {
             <Typography color="gray">
               <div className='flex flex-col'>
                 {/* <span className='font-bold'>Product Description:</span> */}
-                <span>{searchedItem.description}</span>
+                <span>{productsList.products.description}</span>
               </div>
             </Typography>
           </CardBody>
@@ -328,21 +331,19 @@ export const MenuItemProductPage = () => {
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-
-              {/* Checkout/Cart */}
               <div className="flex gap-x-2 mt-4 items-center">
                 <button
                   onClick={handleAddCartItem}
-                  className="bg-red-600 w-full hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm flex-shrink-0"
+                  className={`bg-red-600 w-full hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm flex-shrink-0 relative ${isSubmitting ? 'cursor-not-allowed' : ''}`}
+                  disabled={isSubmitting}
                 >
-                  Add to Cart
+                  {isSubmitting ? (
+                    <MiniLoader message="Adding to Cart" />
+                  ) : (
+                    'Add to Cart'
+                  )}
                 </button>
               </div>
-            </div>
-
-            {/* Total Price */}
-            <div className="mt-4 pb-16 flex">
-              <div className="font-semibold text-sm">Total (per item): ${totalPrice.toFixed(2)}</div>
             </div>
           </div>
         </div>

@@ -6,12 +6,14 @@ import { Facebook, Instagram } from 'lucide-react';
 import { FaXTwitter } from "react-icons/fa6";
 
 export const ContactsPage = () => {
-
+  // TODO: Implement the ContactsPage component
   return (<div className='px-16 py-8 flex flex-col justify-center items-center'>
     <section className="space-y-8">
       <div className="space-y-2">
         <h2 className="text-3xl font-bold">Contact Us</h2>
-        <p className="text-zinc-500 dark:text-zinc-400">We're here to help and answer any question you might have.</p>
+        <p className="text-zinc-500 dark:text-zinc-400">
+          We're here to help and answer any question you might have.
+        </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-4 border-spacing-4  px-4 ">
