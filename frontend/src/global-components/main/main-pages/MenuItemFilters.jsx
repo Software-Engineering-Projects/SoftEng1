@@ -3,24 +3,36 @@ import { useState } from 'react'
 import { Scrollbars } from 'react-custom-scrollbars';
 import { productsMockData } from '@/mock/productsMockData.js';
 import { restaurantsMockData } from '@/mock/restaurantsMockData.js';
+import { useDispatch, useSelector } from "react-redux";
+import { productCategories } from '@/constants/products/categories';
 
 // For Dynamically fetching the cuisine available
-const restaurantCuisine = restaurantsMockData.map(restaurant => restaurant.cuisine);
-const uniqueCuisine = [...new Set(restaurantCuisine)].sort();
+// TODO: This will need refactoring of the data model, not for now
+const restaurantCuisine = productCategories.map(product => product);
+const uniqueCuisine = [...new Set(restaurantCuisine.flat())];
+console.log('Unique Cuisine:', uniqueCuisine);
 
 // For Dynamically fetching the addonsStatus if available
 const addonsStatus = productsMockData.map(product => (
   product.addons && product.addons.length > 0 ? 'With Addons' : 'Without Addons'
 ));
-const uniqueAddonsStatus = [...new Set(addonsStatus)];
-
-// For Dynamically fetching the sizes available
-const productSizes = productsMockData.flatMap(product => (
-  product.sizes.map(size => size.name)
-));
-const uniqueSizes = [...new Set(productSizes)];
 
 export const MenuItemFilters = () => {
+  const productsList = useSelector((state) => state.product);
+  let allSizes = new Set();
+  let allAddons = new Set();
+
+  productsList.products.forEach(product => {
+    product.sizes.forEach(size => allSizes.add(size.name));
+    product.addons.forEach(addon => allAddons.add(addon.name));
+  });
+
+  allSizes = Array.from(allSizes).sort();
+  allAddons = Array.from(allAddons).sort();
+
+  console.log('All Sizes:', allSizes);
+  console.log('All Addons:', allAddons);
+
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedAddon, setSelectedAddon] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
@@ -33,7 +45,7 @@ export const MenuItemFilters = () => {
 
   const renderSelectOptions = (optionsArray) => (
     <>
-      <option value="" disabled>Select a {optionsArray === uniqueCuisine ? 'category' : optionsArray === uniqueAddonsStatus ? 'addon' : 'size'}</option>
+      <option value="" disabled>Select a {optionsArray === uniqueCuisine ? 'category' : optionsArray === allAddons ? 'addon' : 'size'}</option>
       {optionsArray.map((option, index) => (
         <option key={index} value={option}>{option}</option>
       ))}
@@ -46,7 +58,7 @@ export const MenuItemFilters = () => {
     <>
       <span className='mb-4 text-sm font-semibold'>Filters</span>
       <div className='flex'>
-        {[uniqueCuisine, uniqueAddonsStatus, uniqueSizes].map((optionsArray, index) => (
+        {[uniqueCuisine, allAddons, allSizes].map((optionsArray, index) => (
           <div key={index} className='h-20'>
             <Scrollbars style={{ width: scrollBarWidth, height: 80 }}>
               <div className="py-4 px-3 text-xs md:w-1/2 lg:w-1/3 xl:w-1/4">
