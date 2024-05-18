@@ -1,6 +1,10 @@
 import React from 'react';
 
 export const DashboardReports = () => {
-  return <div>Dashboard Reports Page</div>;
+  return (
+    <div>
+      Dashboard Reports Page
+    </div>
+  );
 };
 
