@@ -20,7 +20,6 @@ import {
   Orders,
   OrderHistory,
   Transactions,
-  Checkout
 } from "./pages/user-profile/user-profile-index.js";
 
 // Dashboard Pages
@@ -42,6 +41,7 @@ import { TopNavbar } from "@/global-components/main/navbar/TopNavbar.jsx";
 import { Footer } from "@/global-components/main/main-pages/Footer.jsx";
 import { MenuItemProductPage } from "./pages/main/navbar/navbar-pages-index.js";
 import { CheckoutSuccess } from "./pages/checkout/checkout-status/CheckoutSuccess.jsx";
+import { Checkout } from "./pages/checkout/Checkout.jsx";
 import { CheckoutCancel } from "./pages/checkout/checkout-status/CheckoutCancel.jsx";
 import { CashOnDelivery } from "./pages/checkout/checkout-type/CashOnDelivery.jsx";
 import { OrderTracker } from "./pages/checkout/checkout-status/OrderTracker.jsx";
