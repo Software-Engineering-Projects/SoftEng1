@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LoginBG, Logo } from '../../public/images/public-images-index.js';
-import { app } from '../config/firebase.config.js';
+import { LoginBG, Logo } from '@/public/images/public-images-index.js';
+import { app } from '@/config/firebase.config.js';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
@@ -85,9 +85,12 @@ export const LoginPage = () => {
         });
       }, 2000);
       // NOTE: Upon registering this will create a cart for the user
-      createCart(userDetails.uid);
-      navigate('/login', { replace: true });
-      toast.success('Account created successfully');
+      await createCart(userDetails.uid)
+        .then(() => {
+          console.log('Cart created');
+          navigate('/login', { replace: true });
+          toast.success('Account created successfully');
+        });
     } catch (error) {
       console.error(error);
       switch (error.code) {
@@ -177,7 +180,6 @@ export const LoginPage = () => {
   // TODO: Setup routes
   // TODO: Try and setup components here to be reusable components NOTE: since these components takes props and states it might be harder to implement these
   return (
-    // TODO: Button isnt blurred when loading
     <div className="h-screen overflow-hidden flex flex-col items-center justify-center">
       <img
         src={LoginBG}
@@ -263,6 +265,8 @@ export const LoginPage = () => {
 
                   <label className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 transform translate-y-1/2 mt-1.5">
                     <input
+                      id="showPassword"
+                      name="showPassword"
                       type="checkbox"
                       className="sr-only peer"
                       checked={isPasswordVisible}
@@ -275,7 +279,8 @@ export const LoginPage = () => {
                         }
                       }}
                     />
-                    <div className="w-11 h-6 mb-10 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    <span className="w-11 h-6 mb-10 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                    </span>
                   </label>
                 </div>
 
@@ -381,14 +386,11 @@ export const LoginPage = () => {
                 >
                   {isLogin ? 'Sign in' : 'Create an account'}
                 </button>
-
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400 items-center justify-center flex flex-col">
                   {isLogin
                     ? "Don't have an account yet?"
                     : 'Already have an account?'}
-
                   <button
-                    // href="#"
                     onClick={toggleForm}
                     className="font-medium text-primary-600 hover:underline dark:text-primary-500 p-2"
                   >
