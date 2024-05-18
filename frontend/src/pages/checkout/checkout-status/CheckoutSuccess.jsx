@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from 'react-confetti';
-import { FaCircleCheck } from "react-icons/fa6";
+import { NavLink, useParams } from 'react-router-dom';
+
+import { FaCheckCircle } from "react-icons/fa";
 
 // TODO: Create a checkbox success component, that will display a progress bar of the current order example the initial state is pending -> confirmed, shipped, delivered, and a message that the order has been successfully placed.
 // TODO: Destructure more of the appropriate order details
@@ -19,25 +21,21 @@ export const CheckoutSuccess = () => {
         recycle={false}
       />
       <div className="flex flex-col items-center justify-center h-[80vh]">
-        <div className="flex flex-col items-center justify-center space-y-4 p-12">
-          <FaCircleCheck className="text-green-500 w-20 h-20 mb-4" />
-          <p className="text-3xl">
-            Thank you for your order!
+        <div className="flex flex-col items-center justify-center space-y-4 p-12 bg-white rounded-lg shadow-lg">
+          <FaCheckCircle className="text-green-500 w-20 h-20 mb-4" />
+          <p className="text-3xl font-semibold text-gray-800">
+            Your order has been placed successfully.
           </p>
-          <p className="bg-gray-100 rounded-full ">
-            Your Order ID is : TODO:
+          <p className="text-xl text-gray-600">
+            Thank you for choosing our service!
           </p>
-          <div className="">
-            Order Status : TODO:
-            {/* <OrderStatusTimeline /> */}
-          </div>
-          <div className="flex justify-center items-center space-x-4">
-            <button className="px-4 py-2 bg-blue-400">
-              Continue Shopping
-            </button>
-            <button className="px-10 py-2 bg-blue-400">
-              Print Receipt
-            </button>
+          {/* TODO: Based on the most recent order that is just made, share the state of that order id */}
+          <div className="flex justify-center items-center space-x-4 mt-6">
+            <NavLink to="/checkout/order-tracker">
+              <button className="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50">
+                Track Order
+              </button>
+            </NavLink>
           </div>
         </div>
       </div>
