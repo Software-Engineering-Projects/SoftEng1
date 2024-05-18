@@ -16,7 +16,7 @@ import {
 } from "react-icons/tb";
 import { Cart } from "@/global-components/main/navbar/navbar-component-index.js";
 import { OnboardButton } from "@/global-components/main/navbar/navbar-component-index.js";
-import { defaultUser, Logo } from "../../../../public/images/public-images-index.js";
+import { defaultUser, Logo } from "@/public/images/public-images-index.js";
 import { CartBadge } from "@/global-components/main/navbar/navbar-component-index.js";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { RiAdminLine } from "react-icons/ri";
