@@ -10,9 +10,10 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { NavLink } from 'react-router-dom';
+// TODO: Import the API for fetching the role of the current user
 
 export const AdminLoginPage = () => {
-  const [email, setEmail] = useState('example@example.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
 
@@ -24,22 +25,19 @@ export const AdminLoginPage = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
       const user = userCredential.user;
+      // TODO: Await the response from the API Role fetch endpoint
+      // TODO: Chain the admin role check here
       if (user) {
         dispatch(setUserDetails(user));
         dispatch(setUserName(user.displayName));
         toast.success('Logged in successfully');
-        navigate('/admin/dashboard');
+        navigate('/dashboard');
       }
+      // TODO: Add error.code object switch case checks to provide a more descriptive and cleaner toast error response 
     } catch (error) {
       toast.error(error.message);
     }
   };
-
-// ...
-
-// ...
-
-// ...
 
 return (
   <div className="flex items-center justify-center h-screen bg-gray-200">
@@ -61,6 +59,7 @@ return (
         className="w-full p-2 mb-6 text-black border-b-2 border-blue-500 outline-none focus:bg-gray-300"
         required
       />
+      {/* FIXME: This button is disabled because of the disabled attribute always being false */}
       <button
         type="submit"
         disabled={!isFormValid}
