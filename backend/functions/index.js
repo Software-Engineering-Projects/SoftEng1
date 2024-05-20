@@ -22,7 +22,7 @@ if (!app) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccountKey),
     // NOTE: Replace this with your own databaseURL
-    databaseURL: "https://ordering-system-d1976-default-rtdb.firebaseio.com/",
+    databaseURL: "https://ordering-system-7c42a-default-rtdb.firebaseio.com",
   });
 
   /**

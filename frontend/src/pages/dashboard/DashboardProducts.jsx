@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { productsMockData } from '../../mock/productsMockData.js';
 import { SearchFilter, DataTable, Pagination, AddButton } from '@/global-components/dashboard/dashboard-pages/dashboard-pages-component-index.js';
-
 import { ImageOff } from 'lucide-react';
-
-// FIXME: THIS IS JUST MOCK DATA, TABLE HEADERS ARE NOT FINAL
+import { getAllProducts, addNewProduct } from '@/api/index.js';
 
 export const DashboardProducts = () => {
   const dispatch = useDispatch();
@@ -14,22 +11,21 @@ export const DashboardProducts = () => {
   const [tableData, setTableData] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activePage, setActivePage] = useState(1);
+  const [products, setProducts] = useState([]);
 
-  console.log('searchQuery:', searchQuery);
-  console.log('activePage:', activePage);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const products = await getAllProducts();
+        setProducts(products);
+        setTableData(products);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
 
-  // TODO: Replace this with actual API call for the products list
-  // useEffect(() => {
-  //   if (!userList) {
-  //     getUserList()
-  //       .then((data) => {
-  //         dispatch(setUserListDetails(data));
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error fetching user list: ", error);
-  //       });
-  //   }
-  // }, [dispatch, userList]);
+    fetchProducts();
+  }, [dispatch]);
 
   const productHeader = [
     { title: 'Product Image' },
@@ -44,54 +40,46 @@ export const DashboardProducts = () => {
     { title: 'Featured' }
   ];
 
-  // FIXME: The image should be rendering in the data table
-  const productsMockDataList = productsMockData
-    ? productsMockData.map((product) => ({
-      'Product Image': Array.isArray(product.productImage) ? product.productImage.map((src, index) => (
-        <div key={index} className="p-7 items-center justify-center flex">
-          <img
-            src={src}
-            alt="Product"
-            className="w-full h-56 object-cover transform transition-transform duration-200 hover:scale-105"
-            height="200"
-            style={{
-              aspectRatio: "200/200",
-              objectFit: "cover",
-            }}
-            width="200"
-          />
+  const productsDataList = products.map((product) => ({
+    'Product Image': Array.isArray(product.productImage) ? product.productImage.map((src, index) => (
+      <div key={index} className="p-7 items-center justify-center flex">
+        <img
+          src={src}
+          alt="Product"
+          className="w-full h-56 object-cover transform transition-transform duration-200 hover:scale-105"
+          height="200"
+          style={{ aspectRatio: "200/200", objectFit: "cover" }}
+          width="200"
+        />
+      </div>
+    )) : (
+      <>
+        <div className="px-7 items-center justify-center flex">
+          <ImageOff className="w-5 h-5" />
         </div>
-      )) : (
-        <>
-          <div className="px-7 items-center justify-center flex">
-            <ImageOff className="w-5 h-5" />
-          </div>
-          <span className='flex items-center justify-center'>No Image</span>
-        </>
-      ),
-      // TODO: Separate the prices and names, or make them a list
-      'Product Name': product.productName || '-',
-      'Category': product.category || '-',
-      'Base Price': '$' + (product.basePrice || '-'),
-      'Ingredients': product.ingredients?.join(', ') || '-',
-      'Sizes': product.sizes?.map(size => `${size.name}: $${size.price}`).join(' | ') || '-',
-      'Addons': product.addons?.map(addon => `${addon.name}: $${addon.price}`).join(' | ') || (
-        <span className="text-red-600">No Addons</span>
-      ),
-      'Date Added': product.dateAdded || '-',
-      'Published': product.isPublished || '-',
-      'Featured': product.isFeatured || '-',
-    })) : [];
+        <span className='flex items-center justify-center'>No Image</span>
+      </>
+    ),
+    'Product Name': product.productName || '-',
+    'Category': product.category || '-',
+    'Base Price': '$' + (product.basePrice || '-'),
+    'Ingredients': product.ingredients?.join(', ') || '-',
+    'Sizes': product.sizes?.map(size => `${size.name}: $${size.price}`).join(' | ') || '-',
+    'Addons': product.addons?.map(addon => `${addon.name}: $${addon.price}`).join(' | ') || (
+      <span className="text-red-600">No Addons</span>
+    ),
+    'Date Added': product.dateAdded || '-',
+    'Published': product.isPublished ? 'Yes' : 'No',
+    'Featured': product.isFeatured ? 'Yes' : 'No',
+  }));
 
+  const [filteredData, setFilteredData] = useState(productsDataList);
 
-  const [filteredData, setFilteredData] = useState(productsMockDataList);
-
-  console.log('filteredData:', filteredData);
   const handleSearch = (searchQuery) => {
     setSearchQuery(searchQuery);
     const trimmedQuery = searchQuery.trim().toLowerCase();
 
-    const filteredData = productsMockDataList.filter((item) =>
+    const filteredData = productsDataList.filter((item) =>
       productHeader.some((header) => {
         const itemValue = item[header.title];
         if (typeof itemValue === 'string') {
@@ -112,36 +100,16 @@ export const DashboardProducts = () => {
 
     setFilteredData(filteredData);
     setActivePage(1);
-    console.log('trimmedQuery:', trimmedQuery);
-    console.log('handleSearch filteredData:', filteredData);
   };
 
-  const totalItems = searchQuery
-    ? filteredData.length
-    : productsMockDataList.length;
+  const totalItems = searchQuery ? filteredData.length : productsDataList.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const totalOriginalItems = productsMockDataList.length;
-  const totalFilteredItems = filteredData.length;
-
-  const totalPagesOriginal = Math.ceil(totalOriginalItems / itemsPerPage);
-  const totalPagesFiltered = Math.ceil(totalFilteredItems / itemsPerPage);
-
-  console.log('totalItems:', totalItems);
-  console.log('totalPages:', totalPages);
-  console.log('totalOriginalItems:', totalOriginalItems);
-  console.log('totalFilteredItems:', totalFilteredItems);
-  console.log('totalPagesOriginal:', totalPagesOriginal);
-  console.log('totalPagesFiltered:', totalPagesFiltered);
-
   const handlePageChange = (pageNumber) => {
-    // Ensure that pageNumber stays within valid bounds
     if (pageNumber < 1) {
       pageNumber = 1;
     } else {
-      const totalPagesToUse = searchQuery
-        ? totalPagesFiltered
-        : totalPagesOriginal;
+      const totalPagesToUse = searchQuery ? totalPages : Math.ceil(productsDataList.length / itemsPerPage);
       if (pageNumber > totalPagesToUse) {
         pageNumber = totalPagesToUse;
       }
@@ -150,41 +118,27 @@ export const DashboardProducts = () => {
     const startIndex = (pageNumber - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
 
-    let dataForPage;
-    if (searchQuery) {
-      dataForPage = filteredData.slice(startIndex, endIndex);
-    } else {
-      dataForPage = productsMockDataList.slice(startIndex, endIndex);
-    }
+    const dataForPage = searchQuery ? filteredData.slice(startIndex, endIndex) : productsDataList.slice(startIndex, endIndex);
 
     setTableData(dataForPage);
     setActivePage(pageNumber);
-    console.log('dataForPage:', dataForPage);
-    console.log('pageNumber:', pageNumber);
   };
 
-  // Calculate the start and end indices for the current page
-  const startIndex = (activePage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-
-  // Get the items to display for the current page
-  const currentItems = searchQuery
-    ? filteredData.slice(startIndex, endIndex)
-    : productsMockDataList.slice(startIndex, endIndex);
+  useEffect(() => {
+    handlePageChange(activePage);
+  }, [activePage, productsDataList, filteredData, searchQuery]);
 
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
       <div className="flex justify-between pb-4 bg-white dark:bg-gray-900 pt-4">
         <AddButton message="Product" path="/dashboard/products/add" />
 
-        {productsMockData && (
-          <SearchFilter searchQuery={searchQuery} onSearch={handleSearch} />
-        )}
+        <SearchFilter searchQuery={searchQuery} onSearch={handleSearch} />
       </div>
 
       <DataTable
         header={productHeader}
-        data={currentItems}
+        data={tableData}
         activePage={activePage}
         itemsPerPage={itemsPerPage}
       />
@@ -201,7 +155,6 @@ export const DashboardProducts = () => {
         onPageChange={handlePageChange}
         totalPages={totalPages}
         itemsPerPage={itemsPerPage}
-        data={searchQuery ? filteredData : productsMockDataList}
       />
     </div>
   );
