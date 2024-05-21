@@ -1,26 +1,22 @@
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Minus, Plus, Trash2Icon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { removeFromCart, increaseQuantity, reduceQuantity } from '@/context/actions/cartAction';
+import { reduceQuantity, setCartItems } from '@/context/actions/cartAction';
 import { MdOutlineRemoveShoppingCart } from "react-icons/md";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { deleteCartItem } from '@/api/cart.js';
 import { updateCartItemQuantity } from '@/api/cart.js';
 import { MiniLoader } from '@/global-components/global-component-index.js';
-import { setCartItems } from '@/context/actions/cartAction.js';
 import { NavLink } from 'react-router-dom'
-// TODO: Update the cart when choosing different sizes and addons from initial product page, and add the price of the addons to the total price
-// TODO: Fix image to be displayed in the cart, for now its the local JSON, but im setting up the firebase functionality already
-// TODO: The addons and size should be fetched from the backend
-// TODO: Add the addons price, which must also be fetched from the backend
+import { getUserCart } from '@/api/cart'
+import { Logo } from '@/public/images/public-images-index.js';
 
-// TODO: Add the increment and decrement function for the quantity
+// TODO: Fix image to be displayed in the cart, for now its a default image, but im setting up the firebase functionality already
 
 // TODO: Fetch the cart data from the global store
-// TODO: Set the button actions
 export const Cart = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch();
@@ -29,42 +25,47 @@ export const Cart = () => {
   const [removingStatus, setRemovingStatus] = useState({});
   const [increasingStatus, setIncreasingStatus] = useState({});
   const [decreasingStatus, setDecreasingStatus] = useState({});
-
+  const [loading, setIsLoading] = useState(false)
   // Used to disable all cart button actions when one is being processed
   const [massDisable, setMassDisable] = useState(false);
   const cart = useSelector((state) => state.cart)
+  const user = useSelector((state) => state.user);
 
   const cartItems = useSelector((state) => state.cart.items.items)
   const cartId = useSelector((state) => state.cart.items.cartId);
-  console.log(cartId);
-  const totalPrice = useSelector((state) => state.cart.items.totalPrice);
-  console.log(totalPrice)
-  const cartLength = cart.items.length
-  console.log(cartLength)
+  const totalPrice = useSelector((state) => state.cart.items.totalPrice) || 0;
+  const cartLength = cart.items.length || 0;
+  console.log(cart)
 
-  const totalPriceArray = totalPrice || 0
-
-  // TODO: When the API endpoints are made, fetch the cart items from the backend
-  // TODO: The api action are being called correctly and is being updated in the backend, however the UI is not updating, and the catch block is being called
-  // FIXME: This error that is happening is the frontend is most likely due to redux
-  // REVIEW: Create a state to keep track of individual product quantity action and remove action, to have the appropriate loader for that button
-  // TODO:
   const handleRemoveCartItem = async (productIdentifier) => {
     const productId = cartItems.find((item) => item.productIdentifier === productIdentifier).productId;
     setRemovingStatus(prevStatus => ({ ...prevStatus, [productIdentifier]: true }));
     setMassDisable(true);
-    console.log(productId);
     try {
       if (productIdentifier) {
         console.log("Product Identifier remove Cart Item", productIdentifier);
-        await deleteCartItem(cartId, productId, productIdentifier);
-        dispatch(removeFromCart(productIdentifier));
+        await deleteCartItem(cartId, productId, productIdentifier)
+          .then(async () => {
+            setIsLoading(true)
+            try {
+              const fetchedCart = await getUserCart(user.uid);
+              dispatch(setCartItems(fetchedCart.data));
+              console.log(fetchedCart.data);
+            } catch (error) {
+              console.error('Failed to fetch cart:', error);
+            } finally {
+              setIsLoading(false)
+            }
+          }).catch((error) => {
+            console.error("Error removing item from cart", error);
+            toast.error("Error removing item from cart");
+          });
+        toast.success("Item removed from cart");
       }
       else {
         console.error("Could not find productIdentifier in the cart.");
       }
     } catch (error) {
-      // FIXME: Throws an error here, because of redux but the action is being called correctly, and the API is working correctly and the changes are reflected in the database
       console.error("Error removing item from cart", error);
       toast.error("Error removing item from cart");
     }
@@ -82,20 +83,24 @@ export const Cart = () => {
     try {
       if (product) {
         const newQuantity = Number(product.productQuantity) + 1;
-        await updateCartItemQuantity(cartId, product.productId, newQuantity, productIdentifier);
-        dispatch(increaseQuantity(productIdentifier));
-
-        const updatedCartItems = cartItems.map(item => {
-          if (item.productIdentifier === productIdentifier) {
-            return { ...item, productQuantity: newQuantity };
-          }
-          return item;
-        });
+        await updateCartItemQuantity(cartId, product.productId, newQuantity, productIdentifier)
+          .then(async () => {
+            setIsLoading(true)
+            try {
+              const fetchedCart = await getUserCart(user.uid);
+              dispatch(setCartItems(fetchedCart.data));
+              console.log(fetchedCart.data);
+            } catch (error) {
+              console.error('Failed to fetch cart:', error);
+            } finally {
+              setIsLoading(false)
+            }
+          });
+        toast.success("Item quantity increased");
       } else {
         console.error("Could not find productIdentifier in the cart.");
       }
     } catch (error) {
-      // FIXME: Throws an error here, because of redux but the action is being called correctly, and the API is working correctly and the changes are reflected in the database
       console.error("Error increasing item quantity", error);
       toast.error("Error increasing item quantity");
     }
@@ -106,35 +111,34 @@ export const Cart = () => {
   };
 
   const handleDecreaseQuantity = async (productIdentifier) => {
-    const product = cartItems.find((item) => item.productIdentifier === productIdentifier);
     setDecreasingStatus(prevStatus => ({ ...prevStatus, [productIdentifier]: true }));
     setMassDisable(true);
 
     try {
+      const product = cartItems.find((item) => item.productIdentifier === productIdentifier);
       if (product) {
         const newQuantity = Math.max(product.productQuantity - 1, 1);
         await updateCartItemQuantity(cartId, product.productId, newQuantity, productIdentifier);
         dispatch(reduceQuantity(productIdentifier));
-
-        const updatedCartItems = cartItems.map(item => {
-          if (item.productIdentifier === productIdentifier) {
-            return { ...item, productQuantity: newQuantity };
-          }
-          return item;
-        });
-
+        toast.success("Item quantity decreased");
       } else {
         console.error("Could not find productIdentifier in the cart.");
       }
     } catch (error) {
-      // FIXME: Throws an error here, because of redux but the action is being called correctly, and the API is working correctly and the changes are reflected in the database
       console.error("Error decreasing item quantity", error);
       toast.error("Error decreasing item quantity");
-    }
-    finally {
+    } finally {
       setDecreasingStatus(prevStatus => ({ ...prevStatus, [productIdentifier]: false }));
       setMassDisable(false);
-    };
+    }
+  };
+
+  // TODO: Style this better and do not use the Logo as a default image
+  const ImageComponent = ({ src, alt }) => {
+    const imageSrc = src || Logo;
+    return (
+      <img src={imageSrc} alt={alt} className="h-full w-full object-cover object-center" />
+    );
   };
 
   return (
@@ -185,7 +189,7 @@ export const Cart = () => {
                       </div>
 
                       {cartLength === 0 ? (
-                        <div className="absolute top-12 ml-24 mt-72 flex flex-col items-center justify-center">
+                        <div className="flex flex-col items-center justify-center h-full">
                           <p className="text-2xl font-semibold text-gray-800">Your cart is empty</p>
                           <MdOutlineRemoveShoppingCart className="w-24 h-24 mt-8 text-red-600" />
                         </div>
@@ -197,17 +201,26 @@ export const Cart = () => {
                                 {cartItems.map((product) => (
                                   <li key={product.productIdentifier} className="flex py-6">
                                     <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                                      <img src={product.image} alt={product.imageAlt} className="h-full w-full object-cover object-center" />
+                                      <ImageComponent src={product.imageUrl} alt={product.productName} />
                                     </div>
                                     <div className="ml-4 flex flex-1 flex-col">
                                       <div>
                                         <div className="flex justify-between text-base font-medium text-gray-900">
-                                          <h3><NavLink href={product.href}>{product.name}</NavLink></h3>
-                                          <p className="ml-4">${' '}{product.productPrice.toFixed(2)}</p>
+                                          <NavLink to={`/menu/${product.productId}`}>
+                                            {product.productName}
+                                          </NavLink>
+                                          <p className="ml-4">${product.productPrice.toFixed(2)}</p>
                                         </div>
-                                        <p className="mt-1 text-sm text-gray-700">Addons: {product?.productAddons}</p>
+                                        <p className="mt-1 text-sm text-gray-700">
+                                          Addons: {product?.productAddons.join(', ')}
+                                        </p>
                                         <p className="mt-1 text-sm text-gray-700">Size: {product.productSize}</p>
-                                        <p className="text-gray-500 ">Qty : <span className='text-gray-900 font-bold'>{product.productQuantity}</span></p>
+                                        <p className="text-gray-500">
+                                          Qty:
+                                          <span className="text-gray-900 font-bold">
+                                            {product.productQuantity}
+                                          </span>
+                                        </p>
                                       </div>
                                       <div className="flex flex-1 items-end justify-between text-xs">
                                         <div className="gap-x-2 flex">
@@ -235,7 +248,7 @@ export const Cart = () => {
                                           {removingStatus[product.productIdentifier] ? (
                                             <MiniLoader />
                                           ) : (
-                                            <Trash2Icon className='w-4 h-4' />
+                                            <Trash2Icon className="w-4 h-4" />
                                           )}
                                         </button>
                                       </div>
@@ -252,9 +265,9 @@ export const Cart = () => {
                     <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
                       <div className="flex justify-between text-base font-medium text-gray-900">
                         <p>Total</p>
-                        <p>${' '}{totalPriceArray.toFixed(2)}</p>
+                        <p>${totalPrice.toFixed(2)}</p>
                       </div>
-                      {(cartLength > 0) && (
+                      {cartLength > 0 && (
                         <div className="mt-6">
                           <button
                             onClick={() => {
