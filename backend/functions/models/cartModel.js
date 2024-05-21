@@ -8,10 +8,8 @@ const cartSchema = Joi.object({
   userId: Joi.string().required(),
   items: Joi.array().items(Joi.object({
     // TODO: These are required im removing them for now
-    // imageUrl: Joi.string().required(),
+    imageUrl: Joi.string(),
     productId: Joi.string().required(),
-    // This will be derived from the chosen addons,sizes,etc different from the productId
-    // Example: "large_cheese" derived from size and possible addons to help distinguish it from the same items from the cart if any
     productIdentifier: Joi.string().required(),
     productQuantity: Joi.number().required(),
     productPrice: Joi.number().required(),
