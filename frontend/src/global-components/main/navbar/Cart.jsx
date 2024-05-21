@@ -111,15 +111,26 @@ export const Cart = () => {
   };
 
   const handleDecreaseQuantity = async (productIdentifier) => {
+    const product = cartItems.find((item) => item.productIdentifier === productIdentifier);
     setDecreasingStatus(prevStatus => ({ ...prevStatus, [productIdentifier]: true }));
     setMassDisable(true);
 
     try {
-      const product = cartItems.find((item) => item.productIdentifier === productIdentifier);
       if (product) {
         const newQuantity = Math.max(product.productQuantity - 1, 1);
-        await updateCartItemQuantity(cartId, product.productId, newQuantity, productIdentifier);
-        dispatch(reduceQuantity(productIdentifier));
+        await updateCartItemQuantity(cartId, product.productId, newQuantity, productIdentifier)
+          .then(async () => {
+            setIsLoading(true)
+            try {
+              const fetchedCart = await getUserCart(user.uid);
+              dispatch(setCartItems(fetchedCart.data));
+              console.log(fetchedCart.data);
+            } catch (error) {
+              console.error('Failed to fetch cart:', error);
+            } finally {
+              setIsLoading(false)
+            }
+          });
         toast.success("Item quantity decreased");
       } else {
         console.error("Could not find productIdentifier in the cart.");
@@ -127,10 +138,11 @@ export const Cart = () => {
     } catch (error) {
       console.error("Error decreasing item quantity", error);
       toast.error("Error decreasing item quantity");
-    } finally {
+    }
+    finally {
       setDecreasingStatus(prevStatus => ({ ...prevStatus, [productIdentifier]: false }));
       setMassDisable(false);
-    }
+    };
   };
 
   // TODO: Style this better and do not use the Logo as a default image
