@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 
-export const Loader = () => {
-  const [loadingText, setLoadingText] = useState("Loading");
+export const Loader = ({ variant }) => {
+  const [loadingText, setLoadingText] = useState("");
   const [showLoader, setShowLoader] = useState(true);
 
+  // TODO:
   useEffect(() => {
-    const messages = [
+    const generalMessages = [
       "Hang on",
-      "Cooking something",
       "Getting things ready",
       "Almost there",
       "Just a little longer",
@@ -23,6 +23,36 @@ export const Loader = () => {
       "Sit back and relax, we're loading your content",
     ];
 
+    const cartMessages = [
+      "Updating your cart",
+      "Saving your changes",
+      "Applying your updates",
+      "Refreshing your cart",
+      "Processing your cart",
+    ];
+
+    const checkoutMessages = [
+      "Processing your payment",
+      "Finalizing your order",
+      "Securing your transaction",
+      "Completing your purchase",
+      "Preparing your order",
+    ];
+
+    let messages;
+    switch (variant) {
+      case 'cart':
+        messages = cartMessages;
+        break;
+      case 'checkout':
+        messages = checkoutMessages;
+        break;
+      default:
+        messages = generalMessages;
+    }
+
+    setLoadingText(messages[Math.floor(Math.random() * messages.length)]);
+
     const interval = setInterval(() => {
       setLoadingText(messages[Math.floor(Math.random() * messages.length)]);
     }, 2000);
@@ -30,12 +60,12 @@ export const Loader = () => {
     setTimeout(() => {
       clearInterval(interval);
       setShowLoader(false);
-    }, 2000);
+    }, 10000);
 
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [variant]);
 
   if (!showLoader) {
     return null;
@@ -49,7 +79,7 @@ export const Loader = () => {
       >
         <svg
           aria-hidden="true"
-          className="inline w-10 h-10 items-center justify-center text-gray-200 animate-spin dark:text-gray-600 fill-red-600"
+          className="inline w-14 h-14 items-center justify-center text-gray-200 animate-spin dark:text-gray-600 fill-red-600"
           viewBox="0 0 100 101"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -63,7 +93,7 @@ export const Loader = () => {
             fill="currentFill"
           />
         </svg>
-        <span className="p-2">{loadingText}</span>
+        <span className="p-4 text-lg font-bold">{loadingText}</span>
       </div>
     </div>
   );
