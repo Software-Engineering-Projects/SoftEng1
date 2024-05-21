@@ -7,7 +7,7 @@ router.get("/all", orderController.getAllOrdersServer);
 router.get("/:orderId", orderController.getOrderByIdServer);
 router.get("/view/:userId", orderController.viewCustomerOrders);
 
-router.post("/create", checkAdminRole, orderController.createOrderServer);
+router.post("/create", orderController.createOrderServer);
 
 router.patch("/update/:orderId", orderController.updateOrderStatusServer);
 
