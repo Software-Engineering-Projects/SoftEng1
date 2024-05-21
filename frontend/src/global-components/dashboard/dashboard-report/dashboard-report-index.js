@@ -1,5 +1,5 @@
 //Dashboard Report Components
 
-export { ToggleButton } from './toggle-content.jsx';
+export { ToggleButton } from './toggle-button.jsx';
 
-export { PieChartReport } from './PieChart-report.jsx';
+export { PieChartReport } from './report-piechart.jsx';
