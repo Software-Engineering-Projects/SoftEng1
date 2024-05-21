@@ -41,18 +41,13 @@ const addNewProductServer = async (req, res, next) => {
 const getAllProductsServer = async (_req, res, next) => {
   try {
     const querySnapshot = await productsCollectionRef.get();
-    const response = querySnapshot.docs.map((doc) => {
-      const { productName, basePrice, sizes, addons, ingredients, description, preparationTime } = doc.data();
-      return {
+    const response = [];
+    querySnapshot.forEach((doc) => {
+      const productData = {
         productId: doc.id,
-        productName,
-        basePrice,
-        sizes,
-        addons,
-        ingredients,
-        description,
-        preparationTime,
+        ...doc.data(),
       };
+      response.push(productData);
     });
     res.status(200).send({ data: response });
   } catch (error) {
@@ -60,6 +55,7 @@ const getAllProductsServer = async (_req, res, next) => {
     return res.status(400).send({ msg: `GET ALL PRODUCTS ERROR [SERVER] ${error.message}` });
   }
 };
+
 
 const getProductByIdServer = async (req, res, next) => {
   try {
@@ -72,28 +68,25 @@ const getProductByIdServer = async (req, res, next) => {
     if (!doc.exists) {
       return res.status(404).send({ msg: `PRODUCT NOT FOUND [SERVER]` });
     } else {
-      const { productName, basePrice, sizes, addons, ingredients, description, category, imageUrl, isFeatured, isPublished, nutritionalInfo, preparationTime } = doc.data();
       const response = {
         productId: doc.id,
-        productName,
-        basePrice,
-        sizes: sizes.map((size) => ({
+        ...doc.data(),
+      };
+
+      // Map sizes and addons if they exist
+      if (response.sizes) {
+        response.sizes = response.sizes.map((size) => ({
           price: size.price,
           name: size.name,
-        })),
-        addons: addons.map((addon) => ({
+        }));
+      }
+      if (response.addons) {
+        response.addons = response.addons.map((addon) => ({
           name: addon.name,
           price: addon.price,
-        })),
-        ingredients,
-        description,
-        category,
-        imageUrl,
-        isFeatured,
-        isPublished,
-        nutritionalInfo,
-        preparationTime,
-      };
+        }));
+      }
+
       await productClickTrackerIncrement(id);
       return res.status(200).send({ data: response });
     }
@@ -102,6 +95,7 @@ const getProductByIdServer = async (req, res, next) => {
     return res.status(400).send({ msg: `GET PRODUCT BY ID ERROR [SERVER] ${error.message}` });
   }
 };
+
 
 // TODO: Add authentication middleware
 // TODO: Fork and fetch the current product details and update the fields that were changed only
