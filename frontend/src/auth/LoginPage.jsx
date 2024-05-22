@@ -14,6 +14,7 @@ import {
 } from 'firebase/auth';
 import { NavLink } from 'react-router-dom';
 import { createCart } from '@/api/cart.js';
+import { Loader } from "@/global-components/global-component-index.js";
 
 export const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,11 +29,25 @@ export const LoginPage = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
     useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const user = useSelector((state) => state.user);
 
   // TODO: Default should be user
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const firebaseAuth = getAuth(app);
+
+  useEffect(() => {
+    if (user) {
+      setIsLoading(true);
+      navigate("/", { replace: true });
+    }
+  }, [user]);
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   const handleConfirmPasswordRegisterChange = (event) => {
     const newConfirmPassword = event.target.value;
@@ -112,39 +127,24 @@ export const LoginPage = () => {
     setEmail('');
     setLoginPassword('');
     try {
-      const userCred = await signInWithEmailAndPassword(
-        firebaseAuth,
-        email,
-        loginPassword,
-      );
+      const { user: userDetails } = await signInWithEmailAndPassword(firebaseAuth, email, loginPassword);
 
-      const userDetails = userCred.user;
       dispatch(setUserDetails(userDetails));
-      if (userDetails.emailVerified) {
-        const searchParams = new URLSearchParams(window.location.search);
-        const redirectTo = searchParams.get('redirectTo');
 
-        if (redirectTo) {
-          navigate(redirectTo, { replace: true });
-        } else {
-          navigate('/', { replace: true });
-        }
-      } else {
+      if (!userDetails.emailVerified) {
         toast.error('Email not verified');
+        return;
       }
+
+      const redirectTo = new URLSearchParams(window.location.search).get('redirectTo') || '/';
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       console.error(error);
-      switch (error.code) {
-        case 'auth/invalid-login-credentials':
-          toast.error('Invalid credentials');
-          break;
-        case 'auth/user-disabled':
-          toast.error('User disabled');
-          break;
-        default:
-          toast.error('Something went wrong');
-          break;
-      }
+      const errorMessages = {
+        'auth/invalid-login-credentials': 'Invalid credentials',
+        'auth/user-disabled': 'User disabled',
+      };
+      toast.error(errorMessages[error.code] || 'Something went wrong');
     }
   };
 
