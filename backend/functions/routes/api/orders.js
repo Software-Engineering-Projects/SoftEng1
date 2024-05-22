@@ -1,6 +1,5 @@
 const router = require("express").Router();
 const orderController = require("../../controllers/orderController");
-const { checkAdminRole } = require("../../middleware/roles/adminMiddlewareProducts");
 
 router.get("/", orderController.orderTestRouteServer);
 router.get("/all", orderController.getAllOrdersServer);
