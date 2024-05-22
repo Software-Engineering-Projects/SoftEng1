@@ -117,6 +117,9 @@ export const Cart = () => {
 
     try {
       if (product) {
+        if (product.productQuantity === 1) {
+          return;
+        }
         const newQuantity = Math.max(product.productQuantity - 1, 1);
         await updateCartItemQuantity(cartId, product.productId, newQuantity, productIdentifier)
           .then(async () => {
