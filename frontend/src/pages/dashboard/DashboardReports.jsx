@@ -10,19 +10,19 @@ export const DashboardReports = () => {
     const statuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
     const results = [];
   
-    for (let status of statuses) {
-      try {
-        const result = await getOrderStatus(status);
-        if (result) {
-          results.push({ name: status, value: result.length });
-        } else {
-          console.error(`No data returned for status ${status}`);
+    try {
+      const response = await getOrderStatus(statuses);
+      if (response && response.orders) {
+        for (let status of statuses) {
+          results.push({ name: status, value: response.orders[status] });
         }
-      } catch (error) {
-        console.error(`Error fetching order status for ${status}:`, error);
+      } else {
+        console.error(`No data returned from getOrderStatus`);
       }
+    } catch (error) {
+      console.error(`Error fetching order statuses:`, error);
     }
-
+  
     setData(results);
     setButtonClicked(true);
   }

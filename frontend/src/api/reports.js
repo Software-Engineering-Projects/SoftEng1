@@ -2,13 +2,11 @@ import axios from "axios";
 
 export const baseURL = import.meta.env.VITE_BASE_URL;
 
-//{{baseUrl}}/api/reports/order-status?status=delivered
-
-export const getOrderStatus = async (status) => {
+export const getOrderStatus = async (statuses) => {
   try {
     const res = await axios.get(`${baseURL}/api/reports/order-status`, {
       params: {
-        status: status
+        statuses: statuses
       }
     });
     return res.data;
