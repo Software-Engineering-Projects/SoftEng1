@@ -39,8 +39,6 @@ export const DashboardReports = () => {
         <div>
           {isLoading && <p>Loading Results...</p>}
           {!isLoading && <PieChartReport data={data} />}
-          {!isLoading && <BarChartReport data={data} />}
-          {!isLoading && <RadarChartReport data={data} />}
         </div>
       </div>
     </div>
