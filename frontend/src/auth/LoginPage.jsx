@@ -32,6 +32,7 @@ export const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const user = useSelector((state) => state.user);
+  const role = useSelector((state) => state.roleType);
 
   // TODO: Default should be user
   const dispatch = useDispatch();
@@ -39,7 +40,7 @@ export const LoginPage = () => {
   const firebaseAuth = getAuth(app);
 
   useEffect(() => {
-    if (user) {
+    if (user && role) {
       setIsLoading(true);
       navigate("/", { replace: true });
     }
