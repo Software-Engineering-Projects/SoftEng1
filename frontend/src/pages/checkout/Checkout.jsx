@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button"
 import { useSelector, useDispatch } from "react-redux"
 import { Radio } from 'flowbite-react';
 import { BsCashStack, BsPaypal } from "react-icons/bs";
@@ -16,6 +15,9 @@ import { Logo } from '@/public/images/public-images-index.js';
 import { setCartItems } from "../../context/actions/cartAction";
 import { getUserCart } from '@/api/cart'
 import { Loader } from "@/global-components/global-component-index.js";
+import { Button } from 'flowbite-react';
+import { FaCircleArrowRight, FaMagnifyingGlass } from 'react-icons/fa6';
+import { MdDiscount } from "react-icons/md";
 
 // FIXME: Since the state of this isn't intialized here it throws and error if you reload within this page with visiting the root
 export const Checkout = () => {
@@ -158,11 +160,11 @@ export const Checkout = () => {
             Checkout
           </h1>
         </div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[110rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap -mx-4">
             <div className="w-full lg:w-1/2 px-4 mb-6 lg:mb-0">
               <div ref={paymentMethodRef} className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                <h2 className="text-2xl font-semibold mb-4 text-gray-800">
                   Payment Method
                 </h2>
                 <div className="grid grid-cols-1 gap-y-4">
@@ -184,7 +186,7 @@ export const Checkout = () => {
                       <span className="ml-3 flex items-center">
                         {paymentMethod === 'stripe' && <GrStripe className='w-5 h-5 text-blue-500' />}
                         {paymentMethod === 'cash' && <BsCashStack className='w-5 h-5 text-green-500' />}
-                        <span className="ml-2 text-sm font-medium text-gray-900">{`Pay with ${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)}`}</span>
+                        <span className="ml-2 text-md font-medium text-gray-900">{`Pay with ${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)}`}</span>
                       </span>
                     </label>
                   ))}
@@ -192,6 +194,20 @@ export const Checkout = () => {
                 {paymentError && <p className="text-red-500 text-md font-bold mt-2">
                   {paymentError}
                 </p>}
+              </div>
+              <div className="flex items-center justify-between px-4 py-6">
+                <input
+                  type="text"
+                  // value={searchedOrderId}
+                  // onChange={(e) => setSearchedOrderId(e.target.value)}
+                  placeholder="Enter Voucher Code"
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 transition-colors duration-300 ease-in-out w-full"
+                  required
+                />
+                <Button type="submit" className="ml-2" color="red" >
+                  <MdDiscount className="size-4 mr-2" />
+                  Apply
+                </Button>
               </div>
             </div>
             <div className="w-full lg:w-1/2 px-4 shadow-lg">
@@ -202,12 +218,12 @@ export const Checkout = () => {
                 <div className="overflow-y-auto h-96">
                   <ul className="space-y-4">
                     {cartItems.map((product) => (
-                      <li key={product.productId} className="flex items-center space-x-4">
+                      <li key={product.productId} className="flex items-center space-x-4 space-y-2 border-4 border-transparent p-1">
                         <div className="flex-shrink-0 w-20 h-20 overflow-hidden rounded-md border border-gray-300">
                           <ImageComponent src={product.imageUrl} alt={product.productName} />
                         </div>
                         <div className="flex-grow">
-                          <p className="text-lg font-semibold text-gray-900">
+                          <p className="text-xl font-extrabold text-gray-900 w-full flex pl-6">
                             <NavLink to={`/menu/${product.productId}`} className="hover:underline">
                               {product.productName}
                             </NavLink>
@@ -260,12 +276,14 @@ export const Checkout = () => {
       </div>
       <div className="flex flex-col items-center justify-center">
         <button onClick={onClickHandler} className={`mt-4 mb-8 w-1/4 rounded-md bg-red-600 hover:bg-red-900/75 px-6 py-3 font-medium text-white ${orderButtonLoading ? 'cursor-not-allowed' : ''}`}
-          disabled={orderButtonLoading}
-        >
+          disabled={orderButtonLoading}>
           {orderButtonLoading ? (
             <MiniLoader message="Placing Order" className="text-black" />
           ) : (
-            "Place Order"
+            <div className="flex items-center justify-center mr-2">
+              <FaCircleArrowRight className="mr-2 h-5 w-5 " />
+              Place Order
+            </div>
           )}
         </button>
       </div>
