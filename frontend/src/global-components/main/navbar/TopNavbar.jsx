@@ -78,7 +78,7 @@ export const TopNavbar = () => {
   // TODO: Hamburger menu is not absolute
   // However this is more responsive for mobile and desktop
   return (
-    <div className="shadow-md shadow-black/10 border-b-4 border-rose-400 sticky top-0 z-10 bg-white">
+    <div className="shadow-md shadow-black/10 border-b-4 border-rose-400 sticky top-0 z-20 bg-white">
       <div className="flex items-center justify-center mx-auto">
         <NavLink to="/">
           <img
