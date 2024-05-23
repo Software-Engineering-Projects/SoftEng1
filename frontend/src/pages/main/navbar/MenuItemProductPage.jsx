@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Label, Modal, Select } from 'flowbite-react';
-import { Dessert, Eye, Heart, Minus, Plus, Search, SearchX, Star } from 'lucide-react';
+import { Clock, Dessert, Eye, Heart, Minus, Plus, Search, SearchX, ShoppingBasket, Star } from 'lucide-react';
 import { IoMdStar } from "react-icons/io";
 import { GiWrappedSweet } from "react-icons/gi";
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,7 +23,7 @@ import { getUserCart } from '@/api/cart';
 import { setCartItems } from '@/context/actions/cartAction';
 import { Logo } from '@/public/images/public-images-index';
 import { BiDollar } from 'react-icons/bi';
-
+import { NavLink } from 'react-router-dom';
 // TODO: This is correct now its adding the sizes and addons option to the base price which is correct however my products data is defined to provide the overall value not the added value to the base price. So I need to change the data to reflect the added value to the base price instead of the overall value.
 
 
@@ -209,7 +209,9 @@ export const MenuItemProductPage = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline transition-transform transform hover:scale-105"
               type="button"
             >
-              Browse Products
+              <NavLink to="/menu">
+                Browse Products
+              </NavLink>
             </button>
           </div>
         </div>
@@ -218,6 +220,7 @@ export const MenuItemProductPage = () => {
   }
   console.log(searchedItem)
 
+  // TODO: Make this use image kit
   const ProductImage = ({ searchedItem }) => {
     const imageSrc = searchedItem.imageUrl || Logo;
 
@@ -232,11 +235,11 @@ export const MenuItemProductPage = () => {
     );
   };
 
-  const ProductCard = ({ productSrc, productName, productDescription }) => {
+  const ProductCard = ({ productSrc, productName, productDescription, productPreparationTime }) => {
     const imageSrc = productSrc || Logo;
 
     return (
-      <div className="max-w-full xl:max-w-[40rem] h-full bg-white rounded-lg shadow-lg overflow-hidden relative">
+      <div className="max-w-full xl:max-w-[40rem] h-full bg-white rounded-lg shadow-lg overflow-hidden relative border-b-8 border-rose-400 border-x-4 border-t-4">
         <div>
           {/* TODO: List of Vouchers */}
           <div className="absolute top-4 left-4 bg-red-700 text-white px-2 py-1 text-xs font-semibold rounded-br-lg rounded-tl-lg flex flex-col space-y-2 items-center justify-center">
@@ -252,27 +255,45 @@ export const MenuItemProductPage = () => {
             />
           </div>
 
-          <div className="text-center py-6 bg-white">
+          <div className="text-center py-6 bg-gray-100">
             <span className="text-4xl font-bold text-gray-800 transition-colors duration-500 ease-in-out hover:text-gray-600">
               {productName}
             </span>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 bg-zinc-200">
           <div className="flex flex-col items-center font-bold text-center text-2xl transition-colors duration-500 ease-in-out hover:text-gray-600">
             <span>{productDescription}</span>
           </div>
         </div>
+        {productPreparationTime && (
+          <div className="flex items-center justify-between space-x-8 bg-gray-100 h-[106px] p-4 rounded-lg shadow-md">
+            <div className="text-lg font-semibold text-gray-800 ">
+              Preparation Time
+              <div className='flex items-center justify-center'>
+                <Clock className="w-6 h-6 mr-2" />
+                {productPreparationTime} Minutes
+              </div>
+            </div>
+            <div className="text-lg font-semibold text-gray-800 ">
+              Estimated Delivery Time
+              <div className='flex items-center justify-center'>
+                <Clock className="w-6 h-6 mr-2" />
+                {productPreparationTime} Minutes
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="mx-auto pt-12 flex items-center justify-center bg-gray-50 min-h-screen">
+    <div className="mx-auto pt-8 flex items-center justify-center bg-gray-50 min-h-screen">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Product Card */}
-        <ProductCard productSrc={searchedItem.imageUrl} productName={searchedItem.productName} productDescription={searchedItem.description} />
+        <ProductCard productSrc={searchedItem.imageUrl} productName={searchedItem.productName} productDescription={searchedItem.description} productPreparationTime={searchedItem.preparationTime} />
 
         <div className="flex flex-col bg-white rounded-lg shadow-lg p-8 h-full">
           <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4 border-b pb-2">{searchedItem.productName}</h2>
@@ -395,13 +416,16 @@ export const MenuItemProductPage = () => {
             </div>
             <button
               onClick={handleAddCartItem}
-              className={`bg-red-600 w-full hover:bg-red-700 text-white font-bold py-3 rounded-md text-lg flex-shrink-0 ${isSubmitting ? 'cursor-not-allowed' : ''}`}
+              className={`bg-red-600 w-full hover:bg-red-700 text-white font-bold py-3 rounded-md text-lg flex-shrink-0 bottom-0 ${isSubmitting ? 'cursor-not-allowed' : ''}`}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <MiniLoader message="Adding to Cart" />
               ) : (
-                <span>Add to Cart</span>
+                <div className='flex items-center justify-center mr-2'>
+                  <ShoppingBasket className='mr-2' />
+                  Add to Cart
+                </div>
               )}
             </button>
           </div>
