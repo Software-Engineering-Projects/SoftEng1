@@ -48,3 +48,12 @@ export const deleteUserById = async (userId) => {
     return null;
   }
 }
+
+export const fetchRole = async (uid) => {
+  try {
+    const res = await axios.get(`${baseURL}/api/users/role/${uid}`);
+    return res.data.role;
+  } catch (err) {
+    return null;
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LoginBG, Logo } from '@/public/images/public-images-index.js';
+import { LoginBG, Logo } from '../../public/images/public-images-index.js';
 import { app } from '../config/firebase.config.js';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -10,11 +10,14 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { fetchRole } from '@/api/user.js';
+import { NavLink } from 'react-router-dom';
+// TODO: Import the API for fetching the role of the current user
 
 export const AdminLoginPage = () => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const navigate = useNavigate();
   const firebaseAuth = getAuth(app);
@@ -24,40 +27,24 @@ export const AdminLoginPage = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
       const user = userCredential.user;
-      const role = await fetchRole(user.uid);
-      if (user && role === 'user') {
+      // TODO: Await the response from the API Role fetch endpoint
+      // TODO: Chain the admin role check here
+      if (user) {
         dispatch(setUserDetails(user));
         dispatch(setUserName(user.displayName));
+        toast.success('Logged in successfully');
         navigate('/dashboard');
-        setTimeout(() => {
-          toast.success('Logged in successfully');
-        }, 2000);
-      } else {
-        toast.error('You are not an admin');
       }
+      // TODO: Add error.code object switch case checks to provide a more descriptive and cleaner toast error response 
     } catch (error) {
-      console.error(error);
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          toast.error('Email already exists');
-          break;
-        case 'auth/invalid-email':
-          toast.error('Invalid email format');
-          break;
-        default:
-          toast.error('Something went wrong');
-          break;
-      }
+      toast.error(error.message);
     }
   };
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-200">
       <form className="p-6 bg-white rounded shadow-md" onSubmit={handleLogin}>
-        <h1 className="mb-6 text-3xl font-bold text-center mr-4">
-          <img src={Logo} alt="Logo" className="w-12 h-12 inline-block mr-4" />
-          Admin Login
-        </h1>
+        <h1 className="mb-6 text-3xl font-bold text-center">Admin Login</h1>
         <input
           type="email"
           value={email}
@@ -74,9 +61,11 @@ export const AdminLoginPage = () => {
           className="w-full p-2 mb-6 text-black border-b-2 border-blue-500 outline-none focus:bg-gray-300"
           required
         />
+        {/* FIXME: This button is disabled because of the disabled attribute always being false */}
         <button
           type="submit"
-          className={`w-full px-4 py-2 text-white rounded bg-blue-500 hover:bg-blue-700}`}
+          disabled={!isFormValid}
+          className="w-full px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-700"
         >
           Sign In
         </button>
