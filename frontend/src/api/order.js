@@ -18,20 +18,21 @@ export const getAllOrders = async () => {
       const response = await axios.get(`${baseURL}/api/orders/${orderId}`);
       return response.data.data;
     } catch (error) {
-      console.error("Error fetching order:", error);
+      console.error("Error fetching order [CLIENT]:", err)
       return null;
     }
   };
   
-  export const createOrder = async (orderData) => {
-    try {
-      const response = await axios.post(`${baseURL}/api/orders/create`, orderData);
-      return response.data.productId;
-    } catch (error) {
-      console.error("Error creating order:", error);
-      return null;
-    }
-  };
+export const createOrder = async (orderData) => {
+  try {
+    const res = await axios.post(`${baseURL}/api/orders/create`, orderData);
+    console.log(res.data.data);
+    return res.data.data;
+  } catch (err) {
+    console.error("Error creating order [CLIENT]:", err)
+    return null;
+  }
+}
   
   export const updateOrderStatus = async (orderId, status) => {
     try {
