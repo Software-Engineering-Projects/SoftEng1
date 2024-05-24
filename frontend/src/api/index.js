@@ -10,6 +10,9 @@ export { addNewProduct, getAllProducts } from "./product.js";
 // Report API Endpoints
 export { getOrderStatus } from "./reports.js"
 
+// // TODO: Order API Endpoints
+export { getAllOrders, getOrderById, createOrder, updateOrderStatus, viewCustomerOrders } from "./order.js"
+
 // NOTE: These are commented out because they are not yet implemented to avoid runtime error
 // // TODO: Order API Endpoints
 // export { addNewOrder, getAllOrders } from "./order.js";
