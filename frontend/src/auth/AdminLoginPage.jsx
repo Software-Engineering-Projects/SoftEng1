@@ -27,19 +27,36 @@ export const AdminLoginPage = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
       const user = userCredential.user;
+      
       // TODO: Await the response from the API Role fetch endpoint
+      const roleResponse = await fetch(`/api/role?id=${user.uid}`);
+      const roleData = await roleResponse.json();
+
       // TODO: Chain the admin role check here
-      if (user) {
+      if (user && roleData.role === 'admin') {
         dispatch(setUserDetails(user));
         dispatch(setUserName(user.displayName));
         toast.success('Logged in successfully');
         navigate('/dashboard');
+      } else {
+        toast.error('You are not an admin');
       }
-      // TODO: Add error.code object switch case checks to provide a more descriptive and cleaner toast error response 
     } catch (error) {
-      toast.error(error.message);
-    }
-  };
+      // TODO: Add error.code object switch case checks to provide a more descriptive and cleaner toast error response 
+      switch (error.code) {
+        case 'auth/user-not-found':
+          toast.error('No user found with this email');
+          break;
+        case 'auth/wrong-password':
+          toast.error('Wrong password');
+          break;
+        case 'auth/too-many-requests':
+          toast.error('Too many attempts. Please try again later');
+          break;
+        default:
+          toast.error(error.message);
+      }
+    };
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-200">
@@ -73,3 +90,4 @@ export const AdminLoginPage = () => {
     </div>
   );
 }
+};
