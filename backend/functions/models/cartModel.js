@@ -8,13 +8,13 @@ const cartSchema = Joi.object({
   userId: Joi.string().required(),
   items: Joi.array().items(Joi.object({
     // TODO: These are required im removing them for now
-    // imageUrl: Joi.string().required(),
+    imageUrl: Joi.string(),
     productId: Joi.string().required(),
-    // This will be derived from the chosen addons,sizes,etc different from the productId
-    // Example: "large_cheese" derived from size and possible addons to help distinguish it from the same items from the cart if any
     productIdentifier: Joi.string().required(),
     productQuantity: Joi.number().required(),
     productPrice: Joi.number().required(),
+    productSize: Joi.string(),
+    productAddons: Joi.array().items(Joi.string()).optional(),
     productName: Joi.string(),
   })).optional(),
   totalPrice: Joi.number().required(),
@@ -35,10 +35,12 @@ const createCartSchema = Joi.object({
 
 const cartItemsSchema = Joi.object({
   items: Joi.array().items(Joi.object({
-    productId: Joi.string(),
-    productIdentifier: Joi.string(),
-    productQuantity: Joi.number(),
-    productPrice: Joi.number(),
+    productId: Joi.string().required(),
+    productIdentifier: Joi.string().required(),
+    productQuantity: Joi.number().required(),
+    productPrice: Joi.number().required(),
+    productSize: Joi.string(),
+    productAddons: Joi.array().items(Joi.string()).optional(),
     productName: Joi.string(),
   })).optional(),
 });

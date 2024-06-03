@@ -37,85 +37,19 @@ import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebas
 import { storage } from '@/config/firebase.config.js';
 import { useDispatch } from 'react-redux';
 import { addNewProduct, getAllProducts } from '@/api/index.js';
+import { productCategories } from '@/constants/products/categories';
 
-const categories = [
-  'Burgers',
-  'Pizza',
-  'Pasta',
-  'Sushi',
-  'Steak',
-  'Tacos',
-  'Burritos',
-  'Breakfast',
-  'Seafood',
-  'Fast Food',
-  // 'Italian',
-  // 'Japanese',
-  // 'American',
-  // 'Mexican',
-  'Dessert',
-  'Salad',
-  'Beverage',
-  'Sandwich',
-  'Appetizer',
-  // 'Chinese',
-  'Soup',
-  'Salad',
-  'Sandwich',
-  'Wrap',
-  'Cheese',
-  'Cocoa',
-  'Condiment',
-  'Oil',
-  'Fat',
-  'Egg',
-  'Fermented',
-  'Flour',
-  'Grain',
-  'Herb',
-  'Spice',
-  'Legume',
-  'Mushroom',
-  'Nut',
-  'Seed',
-  'Processed',
-  'Ultra-processed',
+// TODO: Fetch from the backend
 
-  // 'Indian',
-  // 'Thai',
-  // 'Vietnamese',
-  // 'Korean',
-  // 'French',
-  // 'Mediterranean',
-  // 'Middle Eastern',
-  // 'Moroccan',
-  // 'Spanish',
-  // 'Turkish',
-  // 'Ethiopian',
-  // 'Brazilian',
-  // 'Caribbean',
-  // 'Cajun',
-  // 'Soul Food',
-  // 'BBQ',
-  // 'Vegan',
-  // 'Vegetarian',
-  // 'Gluten-Free',
-  // 'Paleo',
-  // 'Keto',
-  // 'Halal',
-  // 'Kosher',
-];
 
-// TODO: Make this consistent 
+// TODO: Make this consistent
+// TODO: Mass overhaul
 
 // TODO: Fix image upload not allowing submit if another file type is uploaded
 export const DashboardAddProducts = () => {
   // TODO: The upload should not start immediately after selecting the file, but its set like this for now for testing purposes
-
-
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
-
   const [firebaseImageUrl, setFirebaseImageUrl] = useState('');
 
   const [filePath, setFilePath] = useState(null);
@@ -172,9 +106,8 @@ export const DashboardAddProducts = () => {
   };
 
 
-
-  // TODO: Add button to delete from firebase
-  // TODO: Nutritional info is not being submitted to the database, the array object is empty, and the first index is onlly shown which is the unfinied values
+  // TODO: create a global state to disallow toast stacking, but this is more work and is annoying af
+  // TODO: Nutritional info is not being submitted to the database, the array object is empty, and the first index is only shown which is the unfinied values
 
   const deleteImageFromFirebase = async (filePath) => {
     try {
@@ -202,8 +135,6 @@ export const DashboardAddProducts = () => {
       }
     }
   };
-
-
 
 
   const { control, handleSubmit, register, setValue, setError, getValues, watch, reset, formState: { errors },
@@ -237,10 +168,6 @@ export const DashboardAddProducts = () => {
 
 
   const nutritionalInfoFields = ['calories', 'protein', 'carbohydrates', 'fat', 'fiber', 'sugar'];
-
-  const { register: registerDietaryInfo, setValue: setDietaryInfoValue } = useForm();
-  const dietaryInfoOptions = [
-    'Gluten-Free', 'Dairy-Free', 'Vegan', 'Vegetarian', 'Paleo', 'Keto', 'Low-Carb', 'Low-Fat', 'Low-Sodium', 'Sugar-Free'];
 
   // You can add more options if needed
 
@@ -421,16 +348,9 @@ export const DashboardAddProducts = () => {
 
   });
 
-
   useEffect(() => {
     console.log('handleImageChange: selectedImageFiles:', selectedImageFiles);
   }, [selectedImageFiles]);
-
-
-  const [searchCategories, setSearchCategories] = useState('');
-  const filteredCategories = categories.filter(category =>
-    category.toLowerCase().includes(searchCategories.toLowerCase())
-  );
 
   const onSubmit = (data) => {
     // Extracting data from the form
@@ -516,7 +436,7 @@ export const DashboardAddProducts = () => {
     }
     )
     getAllProducts().then((data) => {
-      // FIXME: This is not working yet 
+      // FIXME: This is not working yet
       // dispatch(getAllProducts(data));
       console.log(data)
     }
@@ -568,7 +488,7 @@ export const DashboardAddProducts = () => {
               <option disabled value="">
                 Select food category
               </option>
-              {categories.map((category, index) => (
+              {productCategories.map((category, index) => (
                 <option key={index} value={category}>
                   {category}
                 </option>

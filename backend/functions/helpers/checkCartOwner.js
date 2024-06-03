@@ -1,17 +1,24 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
+const auth = admin.auth();
+const cartCollectionRef = db.collection("cart");
 
 const isCartOwner = async (cartId, userId) => {
   try {
-    const cart = await db.collection("cart").doc(cartId).get();
+    const user = await auth.getUser(userId);
 
-    if (!cart.exists) {
+    const cartSnapshot = await cartCollectionRef.doc(cartId).get();
+
+    if (!user || !cartSnapshot.exists) {
+      console.error("User or cart does not exist");
       return false;
     }
 
-    return cart.data().userId === userId;
+    const cartData = cartSnapshot.data();
+
+    return cartData.userId === userId;
   } catch (error) {
-    console.error(`IS CART OWNER ERROR [SERVER] ${error.message}`);
+    console.error(`IS CART OWNER ERROR [SERVER]: ${error.message}`);
     return false;
   }
 };

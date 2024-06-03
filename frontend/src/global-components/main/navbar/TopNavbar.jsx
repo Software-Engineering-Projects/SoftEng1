@@ -16,7 +16,7 @@ import {
 } from "react-icons/tb";
 import { Cart } from "@/global-components/main/navbar/navbar-component-index.js";
 import { OnboardButton } from "@/global-components/main/navbar/navbar-component-index.js";
-import { defaultUser, Logo } from "../../../../public/images/public-images-index.js";
+import { defaultUser, Logo } from "@/public/images/public-images-index.js";
 import { CartBadge } from "@/global-components/main/navbar/navbar-component-index.js";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { RiAdminLine } from "react-icons/ri";
@@ -78,7 +78,7 @@ export const TopNavbar = () => {
   // TODO: Hamburger menu is not absolute
   // However this is more responsive for mobile and desktop
   return (
-    <div className="shadow-md shadow-black/10">
+    <div className="shadow-md shadow-black/10 border-b-4 border-rose-400 sticky top-0 z-20 bg-white">
       <div className="flex items-center justify-center mx-auto">
         <NavLink to="/">
           <img
@@ -91,7 +91,7 @@ export const TopNavbar = () => {
           Ordering System
         </span>
       </div>
-      <nav className="sticky z-10 bg-white dark:bg-gray-900 lg:-mt-10">
+      <nav className="sticky z-10 bg-white dark:bg-gray-900 lg:-mt-10 text-lg">
         <div className="flex items-center justify-between pb-4 pl-4 pr-4 mx-auto">
           <div className="flex items-center">
             <button
@@ -106,54 +106,23 @@ export const TopNavbar = () => {
             {isSidebarOpen && (
               <div className="pl-8 pr-5 mt-2 animate-slide-in-from-left md:relative md:flex md:space-x-8 md:mt-0 md:border-0">
                 <ul className="flex flex-col font-medium rounded-lg md:p-0 md:flex-row md:dark:bg-gray-900 hover:text-blue-600 dark:border-gray-700 gap-x-4">
-                  <li>
-                    <NavLink
-                      to="/"
-                      className={({ isActive }) =>
-                        isActive
-                          ? "block font-bold text-red-500 hover:text-blue-700"
-                          : "block py-2 text-gray-900 rounded md:hover:bg-transparent md:p-0 dark:text-white hover:text-blue-600 dark:hover:text-blue-700"
-                      }
-                    >
-                      Home
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/menu"
-                      className={({ isActive }) =>
-                        isActive
-                          ? "block font-bold text-red-500 hover:text-blue-700"
-                          : "block py-2 text-gray-900 rounded md:hover:bg-transparent md:p-0 dark:text-white hover:text-blue-600 dark:hover:text-blue-700"
-                      }
-                    >
-                      Menu
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/featured"
-                      className={({ isActive }) =>
-                        isActive
-                          ? "block font-bold text-red-500 hover:text-blue-700"
-                          : "block py-2 text-gray-900 rounded md:hover:bg-transparent md:p-0 dark:text-white hover:text-blue-600 dark:hover:text-blue-700"
-                      }
-                    >
-                      About Us
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/contacts"
-                      className={({ isActive }) =>
-                        isActive
-                          ? "block font-bold text-red-500 hover:text-blue-700"
-                          : "block py-2 text-gray-900 rounded md:hover:bg-transparent md:p-0 dark:text-white hover:text-blue-600 dark:hover:text-blue-700"
-                      }
-                    >
-                      Contacts
-                    </NavLink>
-                  </li>
+                  {['/', '/menu', '/about-us', '/contacts'].map((path, index) => {
+                    const labels = ['Home', 'Menu', 'About Us', 'Contacts'];
+                    return (
+                      <li key={index}>
+                        <NavLink
+                          to={path}
+                          className={({ isActive }) =>
+                            isActive
+                              ? "block font-bold text-red-500 hover:text-blue-700"
+                              : "block py-2 text-gray-900 rounded md:hover:bg-transparent md:p-0 dark:text-white hover:text-blue-600 dark:hover:text-blue-700"
+                          }
+                        >
+                          {labels[index]}
+                        </NavLink>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
@@ -264,7 +233,7 @@ export const TopNavbar = () => {
                       </li>
                       <li>
                         <NavLink
-                          to="orders"
+                          to="profile/orders"
                           className="flex items-center px-4 py-2 text-sm font-medium text-black hover:bg-blue-400 dark:hover:bg-blue-700 dark:text-gray-200 dark:hover:text-white"
                         >
                           <TbPackage className="mr-2" />
@@ -273,23 +242,13 @@ export const TopNavbar = () => {
                       </li>
                       <li>
                         <NavLink
-                          to="order-history"
+                          to="profile/order-history"
                           className="flex items-center px-4 py-2 text-sm font-medium text-black hover:bg-blue-400 dark:hover:bg-red-700 dark:text-gray-200 dark:hover:text-white"
                         >
                           <TbHistory className="mr-2" />
                           History
                         </NavLink>
                       </li>
-                      {/* Bit unnecessary */}
-                      {/* <li>
-                        <NavLink
-                          to="transactions"
-                          className="flex items-center px-4 py-2 text-sm font-medium text-black hover:bg-blue-400 dark:hover:bg-blue-700 dark:text-gray-200 dark:hover:text-white"
-                        >
-                          <TbArrowsTransferDown className="mr-2" />
-                          Transactions
-                        </NavLink>
-                      </li> */}
                       <li>
                         <button
                           onClick={() => {
@@ -320,8 +279,8 @@ export const TopNavbar = () => {
             )}
           </div>
         </div>
-      </nav >
-    </div >
+      </nav>
+    </div>
   );
 };
 

@@ -1,6 +1,7 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
 const orderCollectionRef = db.collection("orders");
+const orderStatusList = require("../../constants/orderStatus");
 
 const fetchOrdersByStatuses = async (statuses) => {
   const ordersByStatus = {};
@@ -11,9 +12,6 @@ const fetchOrdersByStatuses = async (statuses) => {
   }
   return ordersByStatus;
 };
-const orderStatusList = [
-  "pending", "confirmed", "shipped", "delivered", "cancelled",
-];
 
 const orderStatusReportServer = async (req, res) => {
   try {

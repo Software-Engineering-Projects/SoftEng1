@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ordersMockData, } from "../../mock/ordersMockData.js";
+import { ordersMockData, } from "@/mock/ordersMockData.js";
 import { SearchFilter, DataTable, Pagination, AddButton } from "@/global-components/dashboard/dashboard-pages/dashboard-pages-component-index.js";
 import { ImageOff } from "lucide-react";
-
+import { getOrderById } from "@/api/order.js";
 // FIXME: THIS IS JUST MOCK DATA, TABLE HEADERS ARE NOT FINAL
 // TODO: Search not working
 export const DashboardOrders = () => {

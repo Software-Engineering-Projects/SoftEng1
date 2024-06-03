@@ -1,5 +1,5 @@
 import React from 'react';
-import { defaultUser } from '../../../public/images/public-images-index'
+import { defaultUser } from '@/public/images/public-images-index'
 import {
   CardTitle,
   CardDescription,
@@ -22,10 +22,11 @@ import {
   Table,
 } from '@/components/ui/table';
 import { Home, Pencil, Phone } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
-const ProfileSection = ({ title, value, icon, editButtonLabel }) => (
+const ProfileSection = ({ title, value, icon, editButtonLabel, label }) => (
   <div className="flex items-center justify-between space-x-4">
-    <div className="text-lg font-medium">{title}</div>
+    <div className="text-lg font-medium">{label}: {title}</div>
     <div className="flex items-center space-x-2">
       {icon}
       <Button variant="link">{editButtonLabel}</Button>
@@ -34,22 +35,23 @@ const ProfileSection = ({ title, value, icon, editButtonLabel }) => (
 );
 
 export const UserProfile = () => {
-  // TODO: Hardcoded data fetch these data from the backend once the api endpoints are made
+  const user = useSelector((state) => state.user);
+  console.log(user.displayName);
+
   const profileData = {
-    username: 'Current',
-    phoneNumber: 'Phone Number',
-    // addressBook: 'Address Book',
+    username: user.displayName,
+    email: user.email,
+    phoneNumber: user.providerData[0].phoneNumber || "Not provided",
   };
 
   const walletBalance = '$124.56';
 
+  // TODO: Fetch recent orders from the backend
   const recentOrders = [
     { orderId: '123456', date: 'Nov 1, 2023', total: '$50.00' },
     { orderId: '123457', date: 'Oct 31, 2023', total: '$75.00' },
     { orderId: '123458', date: 'Oct 30, 2023', total: '$100.00' },
   ];
-
-  // TODO: Fix the naming of the variables
 
   return (
     <div className="w-full min-h-screen bg-white dark:bg-gray-800">
@@ -71,24 +73,34 @@ export const UserProfile = () => {
                   />
                   <AvatarFallback>UP</AvatarFallback>
                 </Avatar>
-                <Button variant="outline">Upload Photo</Button>
+                <Button variant="outline">
+                  Upload Photo
+                </Button>
               </div>
               <ProfileSection
+                label="Username"
                 title={profileData.username}
-                icon={<Pencil className="h-5 w-5 text-gray-500 dark:text-gray-300" />}
-                editButtonLabel="Edit"
+                icon={
+                  <Pencil className="h-5 w-5 text-gray-500 dark:text-gray-300" />
+                }
+                editButtonLabel="Edit Name"
               />
               <ProfileSection
+                label="Number"
                 title={profileData.phoneNumber}
                 value={profileData.phoneNumber}
-                icon={<Phone className="h-5 w-5 text-gray-500 dark:text-gray-300" />}
-                editButtonLabel="Edit"
+                icon={
+                  <Phone className="h-5 w-5 text-gray-500 dark:text-gray-300" />
+                }
+                editButtonLabel="Edit Number"
               />
               <ProfileSection
-                title="Address Book"
+                label="Address Book"
                 // value={profileData.addressBook}
-                icon={<Home className="h-5 w-5 text-gray-500 dark:text-gray-300" />}
-                editButtonLabel="Edit"
+                icon={
+                  <Home className="h-5 w-5 text-gray-500 dark:text-gray-300" />
+                }
+                editButtonLabel="Edit Address"
               />
             </CardContent>
           </Card>

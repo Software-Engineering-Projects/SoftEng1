@@ -5,12 +5,15 @@ const realtimeDb = admin.database();
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
 const cartCollectionRef = db.collection("cart");
 const orderCollectionRef = db.collection("orders");
 const checkoutSessionSchema = require("../models/checkoutModel");
 const Joi = require("joi");
 const orderSchema = require("../models/orderModel");
 const isCartOwner = require("../helpers/checkCartOwner");
+const clearCartItems = require("../controllers/cartController").clearCartItems;
+
 // TODO: Create a checkout function that will handle the payment intent
 // TODO: Create a createCheckoutSession function that will handle the checkout session
 // TODO: Create a function that will handle the webhook for the checkout session
@@ -80,54 +83,17 @@ const webhookEventHandler = async (req, res) => {
         break;
       case "price.created":
         break;
+      // TODO: Validate this based on the order schema, and then create the order, and also verify the checkout schema
       case "checkout.session.completed":
         const session = event.data.object;
         console.log("Checkout session completed", session.id, session.payment_status);
-
+        // TODO: Don't know if this is workign properly, need to test
+        clearCartItems(session.metadata.userId);
         if (session.payment_status !== "paid") {
           console.log("Checkout session is not paid.");
           res.status(409).send({ msg: "Checkout session is not paid" });
           return;
         }
-
-        const customerId = session.customer;
-        const customer = await stripe.customers.retrieve(customerId);
-        const { customer_email, name } = customer;
-
-        const order = {
-          userId: session.metadata.userId || "NA",
-          cartId: session.metadata.cartId || "NA",
-          checkoutSessionId: session.id,
-          orderDate: new Date().toISOString(),
-          customerName: session.customer_details.name || "NA",
-          customerEmail: session.customer_details.email || session.customer_email || "NA",
-          shippingAddress: {
-            city: session.customer_details.address.city || "NA",
-            country: session.customer_details.address.country || "NA",
-            line1: session.customer_details.address.line1 || "NA",
-            line2: session.customer_details.address.line2 || "NA",
-            postalCode: session.customer_details.address.postal_code || "NA",
-            state: session.customer_details.address.state || "NA",
-          },
-          status: "pending",
-          totalPrice: session.amount_total ? session.amount_total / 100 : "NA",
-        };
-        const { error, value } = orderSchema.validate(order);
-
-        if (error) {
-          console.error(`Validation error: ${error.message}`);
-          return res.status(400).send(error.message);
-        }
-
-        const orderId = orderCollectionRef.doc().id;
-        await orderCollectionRef.doc(orderId).set(value);
-        console.log("Order created successfully", orderId);
-
-        await realtimeDb.ref(`checkout_sessions_webhook/${session.id}`).update({
-          paymentStatus: session.payment_status,
-          paymentIntentId: session.payment_intent,
-          paid: session.payment_status === "paid",
-        });
 
         break;
       default:
@@ -260,95 +226,93 @@ const createCheckoutIntentServer = async (req, res) => {
 // REVIEW: Check for an existing session that is unpaid, and if it is unpaid, then return that session and persist it, if not create a new session
 // FIXME: There are some issues with the header values
 // ">  Error creating or retrieving checkout session: Cannot set headers after they are sent to the client"
-const createCheckoutSessionServer = async (req, res) => {
-  const { userId, cartId } = req.body;
+// TODO: Make it so that the user id is no longer needed, and the cart id is the only thing needed to create a checkout session
+
+// TODO: Create a checkout session using the stripe api, and then return the url to the client
+// TODO: Assign the correct values to the checkout session object
+const createStripeCheckoutSessionServer = async (req, res) => {
+  const { cartId, userId } = req.body;
+
   if (!userId || !cartId) {
     return res.status(400).send({ msg: "User ID and Cart ID are required" });
   }
+
   if (!isCartOwner(cartId, userId)) {
     return res.status(403).send({ msg: "Unauthorized" });
   }
+
   try {
     const user = await admin.auth().getUser(userId);
     if (!user) {
-      return res.status(404).send({ msg: "User not found" });
+      return res.status(404).send({ msg: `User not found for ID: ${userId}` });
     }
+
     const cartDoc = await cartCollectionRef.doc(cartId).get();
     if (!cartDoc.exists) {
-      return res.status(404).send({ msg: "CART NOT FOUND [SERVER]" });
+      return res.status(404).send({ msg: `Cart not found for ID: ${cartId}` });
     }
-    const customerName = user.providerData[0].displayName || user.email;
+
+    const cartData = cartDoc.data();
+    if (!cartData.items || !Array.isArray(cartData.items) || cartData.items.length === 0) {
+      return res.status(400).send({ msg: "Cart is empty" });
+    }
+
+    const customerName = user.providerData[0]?.displayName || user.email;
     req.body.customerName = customerName;
+
     const { error, value } = checkoutSessionSchema.validate(req.body);
     if (error) {
       console.error(`Validation error: ${error.message}`);
-      return res.status(400).send(error.message);
+      return res.status(400).send({ msg: error.message });
     }
-    let session;
-    const existingCustomer = await stripe.customers.list({ id: value.customerId, limit: 1 });
+
     let customer;
-    if (existingCustomer.data.length > 0) {
-      customer = existingCustomer.data[0];
+    const existingCustomers = await stripe.customers.list({ email: value.customerEmail, limit: 1 });
+
+    if (existingCustomers.data.length > 0) {
+      customer = existingCustomers.data[0];
     } else {
       customer = await stripe.customers.create({
         email: value.customerEmail,
-        idempotency_key: value.customerId,
+        name: customerName,
       });
     }
 
-    session = await stripe.checkout.sessions.create({
-      customer_email: value.customerEmail,
-      client_reference_id: value.userId,
-      customer: customer.id,
-      payment_method_types: ["card"],
-      line_items: cartDoc.data().items.map((item) => ({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: item.productName,
-          },
-          unit_amount: parseInt((item.productPrice * 100).toFixed(2)),
+    const lineItems = cartDoc.data().items.map((item) => ({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: item.productIdentifier,
+          description: item.productAddons.join(", "),
         },
-        quantity: item.productQuantity,
-      })),
+        unit_amount: Math.round(item.productPrice * 100),
+      },
+      quantity: item.productQuantity,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
       mode: "payment",
-      success_url: `https://example.com/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: "https://example.com/cancel",
-      metadata: {
-        cartId,
-        userId,
-      },
+      success_url: `${process.env.APP_URL}/checkout/success`,
+      cancel_url: `${process.env.APP_URL}/checkout/cancel`,
     });
 
-    console.log("Checkout session created successfully. Session ID: ", session.id);
+    res.status(200).send({ url: session.url });
 
-    await realtimeDb.ref().child(`checkout_sessions/${session.id}`).set({
-      session: {
-        payment_status: session.payment_status,
-        payment_intent: session.payment_intent,
-      },
-      paymentIntent: {
-        id: session.payment_intent,
-        status: session.payment_status,
-        amount: session.amount_total,
-        currency: session.currency,
-        metadata: session.metadata,
-      },
-    });
-
-    res.status(200).json({ id: session.id, url: session.url });
   } catch (error) {
-    console.error(`Error creating or retrieving checkout session: ${error.message}`);
-    res.status(500).send(error.message);
+    console.error("Checkout failed:", error);
+    res.status(500).send({ msg: error.message });
   }
 };
+
 
 // TODO: Set as an API Action instead of a webhook
 // TODO: Create more validations
 // FIXME: Some fields may actually be null if a payment intent is not yet been made
 // FIXME: The payment intent id is not yet been made, so it is null, and may be causing issues, this will be fixed later
 // TODO: When creating a payment intent through the api instead of the webhook, the payment intent id is not yet been made, so it is null and can't be referenced, and may be causing issues, this will be fixed later, when using the url its fine though
-const createCheckoutStatusServer = async (req, res, next) => {
+const checkCheckoutStatusServer = async (req, res, next) => {
   const { sessionId } = req.body;
 
   try {
@@ -417,5 +381,5 @@ const getSessionLineItemsServer = async (req, res, next) => {
 };
 
 module.exports = {
-  createCheckoutIntentServer, checkoutTestRouteServer, webhookEventHandler, createCheckoutStatusServer, createCheckoutSessionServer, getCheckoutSessionByIdServer, getSessionLineItemsServer,
+  createCheckoutIntentServer, checkoutTestRouteServer, webhookEventHandler, checkCheckoutStatusServer, getCheckoutSessionByIdServer, getSessionLineItemsServer, createStripeCheckoutSessionServer
 }

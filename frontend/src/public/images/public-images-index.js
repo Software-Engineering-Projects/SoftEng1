@@ -8,3 +8,4 @@ export { default as breakfast } from '../images/text-banner/breakfast.svg'
 export { default as onlineGrocery } from '../images/text-banner/onlineGrocery.svg'
 export { default as orderConfirm } from '../images/text-banner/orderConfirm.svg'
 export { default as shoppingApp } from '../images/text-banner/shoppingApp.svg'
+export { default as imageNotFound } from "../images/informational/imageNotFound.svg"

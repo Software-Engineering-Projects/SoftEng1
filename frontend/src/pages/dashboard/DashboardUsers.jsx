@@ -12,13 +12,12 @@ export const DashboardUsers = () => {
   const itemsPerPage = 20;
 
   const userList = useSelector((state) => state.userList);
+  console.log(userList)
   const [tableData, setTableData] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activePage, setActivePage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log('searchQuery:', searchQuery);
-  console.log('activePage:', activePage);
   useEffect(() => {
     setIsLoading(true);
     if (!userList) {
@@ -34,7 +33,7 @@ export const DashboardUsers = () => {
     }
   }, [dispatch, userList]);
 
-  // TODO: Do not hardcode this 
+  // TODO: Do not hardcode this
 
   const userListHeader = [
     { title: 'User name' },
@@ -44,7 +43,7 @@ export const DashboardUsers = () => {
     { title: 'Last Sign In' },
     { title: 'Creation Time' },
   ];
-  // TODO: Do not hardcode this 
+  // TODO: Do not hardcode this
   const userListData = userList
     ? userList.map((user) => ({
       'User name': user.displayName || '-',
@@ -63,7 +62,7 @@ export const DashboardUsers = () => {
   const [filteredData, setFilteredData] = useState(userListData);
 
   console.log('filteredData:', filteredData);
-
+  // TODO: Make this a reusable
   const handleSearch = (searchQuery) => {
     setSearchQuery(searchQuery);
     const trimmedQuery = searchQuery.trim().toLowerCase();

@@ -1,5 +1,5 @@
 import React from 'react'
-import { breakfast, onlineGrocery, orderConfirm, shoppingApp } from '../../../../public/images/public-images-index.js'
+import { breakfast, onlineGrocery, orderConfirm, shoppingApp } from '@/public/images/public-images-index.js'
 
 export const TextBanner = () => {
   const images = [breakfast, onlineGrocery, orderConfirm, shoppingApp];

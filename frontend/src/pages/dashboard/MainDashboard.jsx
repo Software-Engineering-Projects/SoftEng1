@@ -17,7 +17,7 @@ import { DashboardHeader } from '@/global-components/dashboard/dashboard-compone
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserCount } from '@/api/index.js';
 import { setUserCount } from '@/context/actions/userCountAction';
-import { Logo } from '../../../public/images/public-images-index';
+import { Logo } from '@/public/images/public-images-index';
 import { NavLink } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { app } from '@/config/firebase.config';
@@ -32,56 +32,50 @@ export const MainDashboard = () => {
   const firebaseAuth = getAuth(app);
   const navigate = useNavigate();
   // TODO: set modal state to false when not testing
+  // NOTE: To being redirected to the login page, set the state below to false
   const [openModal, setOpenModal] = useState(true);
   const dispatch = useDispatch();
-
 
   const roleType = useSelector((state) => state.roleType);
   const userCount = useSelector((state) => state.userCount);
 
   console.log('roleType:', roleType);
-  const [count, setCount] = useState(5);
+  const [redirectCounter, setRedirectCounter] = useState(5);
   const user = useSelector((state) => state.user);
 
-  // dispatch(setRoleType(role));
-
   // REMOVING THIS NOW FOR TESTING PURPOSES
-  // useEffect(() => {
-  //   const checkUserRole = async () => {
-  //     setIsLoading(true);
+  // NOTE: Set roletype to 'user' to avoid redirection
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (user && roleType !== 'admin') {
+        setOpenModal(true);
+        setIsLoading(true);
+      } else {
+        setOpenModal(false);
+      }
+      setIsLoading(false);
+    };
+    checkUserRole();
+  }, [user, roleType]);
 
-  //     if (user && roleType === 'admin') {
-  //       setOpenModal(false);
-  //     } else {
-  //       setOpenModal(true);
-  //     }
+  useEffect(() => {
+    if (redirectCounter > 0) {
+      const timerId = setInterval(() => {
+        setRedirectCounter((prevCount) => prevCount - 1);
+      }, 1000);
 
-  //     console.log('openModal:', openModal);
-
-  //     setIsLoading(false);
-  //   };
-
-  //   checkUserRole();
-  // }, [user, roleType]);
-
-  // useEffect(() => {
-  //   if (count > 0) {
-  //     const timerId = setInterval(() => {
-  //       setCount((prevCount) => prevCount - 1);
-  //     }, 1000);
-
-  //     return () => clearInterval(timerId);
-  //   } else if (count === 0) {
-  //     if (openModal) {
-  //       navigate('/', { replace: true });
-  //     }
-  //   }
-  // }, [count, navigate, openModal]);
+      return () => clearInterval(timerId);
+    } else if (redirectCounter === 0) {
+      if (openModal) {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [redirectCounter, navigate, openModal]);
 
 
   useEffect(() => {
-    getUserCount().then((count) => {
-      dispatch(setUserCount(count));
+    getUserCount().then((userCount) => {
+      dispatch(setUserCount(userCount));
     });
   }, [dispatch]);
 
@@ -104,58 +98,65 @@ export const MainDashboard = () => {
     };
   }, []);
 
+  // TODO: Create the reusable component for the navbars to make it more reusable
+  const getNavLinkStyle = (isActive) => {
+    const baseStyle = "flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700 group opacity-80 hover:opacity-100";
+    const activeStyle = "text-red-500 opacity-100";
+    return `${baseStyle} ${isActive ? activeStyle : ''}`;
+  };
+
+  const badgeStyle = "inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300";
+
   return (
     <div>
       {/* TODO: Set to true when not testing */}
       {/* Remove ! from openModal if not in testing */}
-      {/* {(!user || (roleType !== 'admin' || roleType === null)) && ( // Check user role */}
-
-      <Modal show={!openModal} className="backdrop-blur backdrop-filter-blur-sm">
-        <Modal.Body>
-          <div className="space-y-6">
-            <ShieldX className="w-24 h-24 mx-auto text-red-600" />
-            <h1 className="flex items-center justify-center font-semibold text-red-600 text-3xl">
-              Unauthorized Access
-            </h1>
-            <p className="flex items-center justify-center font-semibold">
-              You must be an ADMIN to access the dashboard
-            </p>
-            <div className='flex flex-col items-center justify-center font-semibold'>
-              <p>Redirecting in <span className='text-red-600 '>{count}</span> seconds...</p>
+      {(user === null || roleType !== 'admin') && (
+        <Modal show={openModal} className="backdrop-blur backdrop-filter-blur-sm">
+          <Modal.Body>
+            <div className="space-y-6">
+              <ShieldX className="w-24 h-24 mx-auto text-red-600" />
+              <h1 className="flex items-center justify-center font-semibold text-red-600 text-3xl">
+                Unauthorized Access
+              </h1>
+              <p className="flex items-center justify-center font-semibold">
+                You must be an ADMIN to access the dashboard
+              </p>
+              <div className='flex flex-col items-center justify-center font-semibold'>
+                <p>Redirecting in <span className='text-red-600 '>{redirectCounter}</span> seconds...</p>
+              </div>
             </div>
+          </Modal.Body>
+          <div className="flex flex-col items-center justify-center w-full">
+            <Modal.Footer>
+              <Button
+                onClick={() => {
+                  setOpenModal(false);
+                  const currentRoute = window.location.pathname;
+                  navigate(`/login?redirectTo=${currentRoute}`, {
+                    replace: true,
+                  });
+                }}
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
+              </Button>
+
+              <Button
+                color="gray"
+                className="hover:bg-blue-400"
+                onClick={() => {
+                  setOpenModal(false);
+                  navigate('/', { replace: true });
+                }}
+              >
+                <ArrowBigLeft className="w-6 h-6" />
+                Home
+              </Button>
+            </Modal.Footer>
           </div>
-        </Modal.Body>
-        <div className="flex flex-col items-center justify-center w-full">
-          <Modal.Footer>
-            <Button
-              onClick={() => {
-                setOpenModal(false);
-                const currentRoute = window.location.pathname;
-                navigate(`/login?redirectTo=${currentRoute}`, {
-                  replace: true,
-                });
-              }}
-            >
-              <LogIn className="w-4 h-4 mr-2" />
-              Login
-            </Button>
-
-            <Button
-              color="gray"
-              className="hover:bg-blue-400"
-              onClick={() => {
-                setOpenModal(false);
-                navigate('/', { replace: true });
-              }}
-            >
-              <ArrowBigLeft className="w-6 h-6" />
-              Home
-            </Button>
-          </Modal.Footer>
-        </div>
-      </Modal>
-      {/* )} */}
-
+        </Modal>
+      )}
 
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -178,21 +179,23 @@ export const MainDashboard = () => {
           aria-label="Sidebar"
         >
           {/* Not using the Navlink because this must have a full reload*/}
-          <div className="h-full  bg-slate-50 px-3 py-4 overflow-y-auto  dark:bg-gray-800 ">
+          <div className="h-full bg-slate-50 px-3 py-4 overflow-y-auto  dark:bg-gray-800 ">
             <ul className="space-y-2 font-medium ">
-              <img
-                src={Logo}
-                alt="Logo"
-                className="w-12 h-12 flex flex-col mx-auto "
-              />
+              <NavLink
+                to="/"
+                className="flex justify-center items-center transition duration-300 ease-in-out transform hover:scale-110"
+              >
+                <img
+                  src={Logo}
+                  alt="Logo"
+                  className="w-12 h-12"
+                />
+              </NavLink>
 
               <li>
                 <NavLink
                   to="/dashboard"
-                  className={`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700 group opacity-80 hover:opacity-100 ${window.location.pathname === '/dashboard'
-                    ? 'text-red-500 opacity-100'
-                    : ''
-                    }`}
+                  className={getNavLinkStyle(window.location.pathname === '/dashboard')}
                 >
                   <RxDashboard className="w-6 h-6" />
                   <span className="ml-3">Dashboard</span>
@@ -202,15 +205,11 @@ export const MainDashboard = () => {
               <li>
                 <NavLink
                   to="/dashboard/orders"
-                  className={`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700 group opacity-80 hover:opacity-100 ${window.location.pathname.startsWith('/dashboard/orders')
-                    ? 'text-red-500 opacity-100'
-                    : ''
-                    }`}
+                  className={getNavLinkStyle(window.location.pathname === '/dashboard/orders')}
                 >
                   <PackageSearch className="w-6 h-6" />
                   <span className="flex-1 ml-3 whitespace-nowrap">Orders</span>
-
-                  <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                  <span className={badgeStyle}>
                     23 Fake
                   </span>
                 </NavLink>
@@ -219,33 +218,27 @@ export const MainDashboard = () => {
               <li>
                 <NavLink
                   to="/dashboard/users"
-                  className={`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700 group opacity-80 hover:opacity-100 ${window.location.pathname.startsWith('/dashboard/users')
-                    ? 'text-red-500 opacity-100'
-                    : ''
-                    }`}
+                  className={getNavLinkStyle(window.location.pathname === '/dashboard/users')}
                 >
                   <Users className="w-6 h-6" />
                   <span className="flex-1 ml-3 whitespace-nowrap">Users</span>
-                  <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
-                    {/* Properly sets the usercount now */}
+                  <span className={badgeStyle}>
+
                     {userCount}
                   </span>
                 </NavLink>
               </li>
-              {/* FIXME: Why isnt the product link not being set as active */}
               <li>
                 <NavLink
                   to="/dashboard/products"
-                  className={`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700 group opacity-80 hover:opacity-100 ${window.location.pathname.startsWith('/dashboard/products')
-                    ? 'text-red-500 opacity-100'
-                    : ''
-                    }`}
+                  className={getNavLinkStyle(window.location.pathname === '/dashboard/products')}
                 >
                   <ShoppingBag className="w-6 h-6" />
                   <span className="flex-1 ml-3 whitespace-nowrap">
                     Products
                   </span>
-                  <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                  <span className={badgeStyle}>
+
                     34 Fake
                   </span>
                 </NavLink>
@@ -253,18 +246,14 @@ export const MainDashboard = () => {
               <li>
                 <NavLink
                   to="/dashboard/restaurants"
-                  className={`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700 group opacity-80 hover:opacity-100 ${window.location.pathname.startsWith(
-                    '/dashboard/restaurants',
-                  )
-                    ? 'text-red-500 opacity-100'
-                    : ''
-                    }`}
+                  className={getNavLinkStyle(window.location.pathname === '/dashboard/restaurants')}
                 >
                   <Store className="w-6 h-6" />
                   <span className="flex-1 ml-3 whitespace-nowrap">
                     Restaurants
                   </span>
-                  <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                  <span className={badgeStyle}>
+
                     12 Fake
                   </span>
                 </NavLink>
@@ -272,10 +261,7 @@ export const MainDashboard = () => {
               <li>
                 <NavLink
                   to="/dashboard/reports"
-                  className={`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700 group opacity-80 hover:opacity-100 ${window.location.pathname.startsWith('/dashboard/reports')
-                    ? 'text-red-500 opacity-100'
-                    : ''
-                    }`}
+                  className={getNavLinkStyle(window.location.pathname === '/dashboard/reports')}
                 >
                   <AreaChart className="w-6 h-6" />
                   <span className="flex-1 ml-3 whitespace-nowrap">Reports</span>
@@ -284,10 +270,7 @@ export const MainDashboard = () => {
               <li>
                 <NavLink
                   to="/dashboard/settings"
-                  className={`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700 group opacity-80 hover:opacity-100 ${window.location.pathname.startsWith('/dashboard/settings')
-                    ? 'text-red-500 opacity-100'
-                    : ''
-                    }`}
+                  className={getNavLinkStyle(window.location.pathname === '/dashboard/settings')}
                 >
                   <IoSettingsOutline className="w-6 h-6" />
                   <span className="flex-1 ml-3 whitespace-nowrap">

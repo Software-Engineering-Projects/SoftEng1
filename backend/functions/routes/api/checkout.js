@@ -6,11 +6,13 @@ router.get("/", checkoutController.checkoutTestRouteServer);
 router.get("/:sessionId", checkoutController.getCheckoutSessionByIdServer);
 router.get("/:sessionId/line_items", checkoutController.getSessionLineItemsServer);
 
-router.post("/create-checkout-session", checkoutController.createCheckoutSessionServer);
+// FIXME: This route is not working
+
+router.post("/create-checkout-session", checkoutController.createStripeCheckoutSessionServer);
 
 // NOTE: Not a webhook
 router.post("/checkout-intent", checkoutController.createCheckoutIntentServer);
-router.post("/create-checkout-status", checkoutController.createCheckoutStatusServer);
+router.post("/create-checkout-status", checkoutController.checkCheckoutStatusServer);
 router.post("/webhook", checkoutController.webhookEventHandler);
 
 module.exports = router;

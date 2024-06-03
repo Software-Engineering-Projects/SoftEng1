@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { productsMockData } from '../../mock/productsMockData.js';
+import { productsMockData } from '@/mock/productsMockData.js';
 import { SearchFilter, DataTable, Pagination, AddButton } from '@/global-components/dashboard/dashboard-pages/dashboard-pages-component-index.js';
 
 import { ImageOff } from 'lucide-react';

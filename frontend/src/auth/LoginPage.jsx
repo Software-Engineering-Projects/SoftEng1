@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LoginBG, Logo } from '../../public/images/public-images-index.js';
-import { app } from '../config/firebase.config.js';
+import { LoginBG, Logo } from '@/public/images/public-images-index.js';
+import { app } from '@/config/firebase.config.js';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
@@ -13,6 +13,8 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { NavLink } from 'react-router-dom';
+import { createCart } from '@/api/cart.js';
+import { Loader } from "@/global-components/global-component-index.js";
 
 export const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -27,11 +29,26 @@ export const LoginPage = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
     useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const user = useSelector((state) => state.user);
+  const role = useSelector((state) => state.roleType);
 
   // TODO: Default should be user
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const firebaseAuth = getAuth(app);
+
+  useEffect(() => {
+    if (user && role) {
+      setIsLoading(true);
+      navigate("/", { replace: true });
+    }
+  }, [user]);
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   const handleConfirmPasswordRegisterChange = (event) => {
     const newConfirmPassword = event.target.value;
@@ -83,9 +100,13 @@ export const LoginPage = () => {
           });
         });
       }, 2000);
-
-      navigate('/login', { replace: true });
-      toast.success('Account created successfully');
+      // NOTE: Upon registering this will create a cart for the user
+      await createCart(userDetails.uid)
+        .then(() => {
+          console.log('Cart created');
+          navigate('/login', { replace: true });
+          toast.success('Account created successfully');
+        });
     } catch (error) {
       console.error(error);
       switch (error.code) {
@@ -102,44 +123,29 @@ export const LoginPage = () => {
     }
   };
 
-  // TODO: Add a redirect, checking what the previous path was then redirecting the user after succesful login
+  // TODO: Add a redirect, checking what the previous path was then redirecting the user after successful login
   const signInWithEmailPass = async () => {
     setEmail('');
     setLoginPassword('');
     try {
-      const userCred = await signInWithEmailAndPassword(
-        firebaseAuth,
-        email,
-        loginPassword,
-      );
+      const { user: userDetails } = await signInWithEmailAndPassword(firebaseAuth, email, loginPassword);
 
-      const userDetails = userCred.user;
       dispatch(setUserDetails(userDetails));
-      if (userDetails.emailVerified) {
-        const searchParams = new URLSearchParams(window.location.search);
-        const redirectTo = searchParams.get('redirectTo');
 
-        if (redirectTo) {
-          navigate(redirectTo, { replace: true });
-        } else {
-          navigate('/', { replace: true });
-        }
-      } else {
+      if (!userDetails.emailVerified) {
         toast.error('Email not verified');
+        return;
       }
+
+      const redirectTo = new URLSearchParams(window.location.search).get('redirectTo') || '/';
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       console.error(error);
-      switch (error.code) {
-        case 'auth/invalid-login-credentials':
-          toast.error('Invalid credentials');
-          break;
-        case 'auth/user-disabled':
-          toast.error('User disabled');
-          break;
-        default:
-          toast.error('Something went wrong');
-          break;
-      }
+      const errorMessages = {
+        'auth/invalid-login-credentials': 'Invalid credentials',
+        'auth/user-disabled': 'User disabled',
+      };
+      toast.error(errorMessages[error.code] || 'Something went wrong');
     }
   };
 
@@ -175,7 +181,6 @@ export const LoginPage = () => {
   // TODO: Setup routes
   // TODO: Try and setup components here to be reusable components NOTE: since these components takes props and states it might be harder to implement these
   return (
-    // TODO: Button isnt blurred when loading
     <div className="h-screen overflow-hidden flex flex-col items-center justify-center">
       <img
         src={LoginBG}
@@ -261,6 +266,8 @@ export const LoginPage = () => {
 
                   <label className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 transform translate-y-1/2 mt-1.5">
                     <input
+                      id="showPassword"
+                      name="showPassword"
                       type="checkbox"
                       className="sr-only peer"
                       checked={isPasswordVisible}
@@ -273,7 +280,8 @@ export const LoginPage = () => {
                         }
                       }}
                     />
-                    <div className="w-11 h-6 mb-10 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    <span className="w-11 h-6 mb-10 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                    </span>
                   </label>
                 </div>
 
@@ -301,6 +309,7 @@ export const LoginPage = () => {
                         ❌Passwords do not match
                       </p>
                     )}
+                    {/* TODO: This can probably be set in another file to allow for better readability */}
                     {showRegisterPasswordRequirements && (
                       <>
                         <div className="space-y-2">
@@ -378,14 +387,11 @@ export const LoginPage = () => {
                 >
                   {isLogin ? 'Sign in' : 'Create an account'}
                 </button>
-
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400 items-center justify-center flex flex-col">
                   {isLogin
                     ? "Don't have an account yet?"
                     : 'Already have an account?'}
-
                   <button
-                    // href="#"
                     onClick={toggleForm}
                     className="font-medium text-primary-600 hover:underline dark:text-primary-500 p-2"
                   >

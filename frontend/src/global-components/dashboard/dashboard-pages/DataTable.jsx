@@ -2,6 +2,8 @@ import { Checkbox, Table } from "flowbite-react";
 import { Pencil, Trash2 } from "lucide-react";
 import React from 'react';
 import { useState } from "react";
+import { NavLink } from "react-router-dom";
+
 // TODO: Create collapsible table row for verbose data
 export const DataTable = ({ header, data, imageColumns }) => {
 
@@ -79,21 +81,21 @@ export const DataTable = ({ header, data, imageColumns }) => {
                 ))}
                 <td className="px-4 py-2">
                   <div className="flex items-center justify-center gap-x-2 border-2 px-4 py-2 rounded-lg w-24">
-                    <a
+                    <NavLink
                       href="#"
                       title="Edit"
                       className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
                     >
                       <Pencil className="w-4 h-4 transform transition-transform duration-200 hover:scale-125 text-emerald-500 dark:text-emerald-700 hover:text-emerald-700 dark:hover:text-emerald-800" />
-                    </a>
+                    </NavLink>
                     <div className="border-r border-gray-400 h-4 mx-2"></div>
-                    <a
+                    <NavLink
                       href="#"
                       title="Delete"
                       className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
                     >
                       <Trash2 className="w-4 h-4 transform transition-transform duration-200 hover:scale-125 text-red-500 dark:text-red-700 hover:text-red-700 dark:hover:text-red-800" />
-                    </a>
+                    </NavLink>
                   </div>
                 </td>
               </tr>
